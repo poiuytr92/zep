@@ -1,9 +1,9 @@
 #include "zep/mode.h"
+#include "zep/buffer.h"
 #include "zep/editor.h"
 #include "zep/filesystem.h"
 #include "zep/mode_search.h"
 #include "zep/tab_window.h"
-#include "zep/buffer.h"
 
 #include "zep/mcommon/logger.h"
 
@@ -395,10 +395,9 @@ void ZepMode::HandleMappedInput(const std::string& input)
     // Figure out the command we have typed. foundCommand means that the command was interpreted and understood.
     // If spCommand is returned, then there is an atomic command operation that needs to be done.
     auto spContext = std::make_shared<CommandContext>(m_currentCommand, *this, m_currentMode);
-   
+
     // Before handling the command, change the command text, since the command might override it
-    if (GetEditor().GetConfig().showNormalModeKeyStrokes && 
-        (m_currentMode == EditorMode::Normal || m_currentMode == EditorMode::Visual))
+    if (GetEditor().GetConfig().showNormalModeKeyStrokes && (m_currentMode == EditorMode::Normal || m_currentMode == EditorMode::Visual))
     {
         GetEditor().SetCommandText(spContext->keymap.searchPath);
     }
@@ -635,6 +634,8 @@ bool ZepMode::GetCommand(CommandContext& context)
     // Vim, for example, doesn't do that; an insert mode operation is a single 'group'
     bool shouldGroupInserts = ZTestFlags(m_modeFlags, ModeFlags::InsertModeGroupUndo);
 
+    GlyphIterator cursorItr(buffer, bufferCursor);
+
     auto mappedCommand = context.keymap.foundMapping;
     if (mappedCommand == id_NormalMode)
     {
@@ -848,25 +849,24 @@ bool ZepMode::GetCommand(CommandContext& context)
     }
     else if (mappedCommand == id_MotionRight)
     {
-        GetCurrentWindow()->SetBufferCursor(context.buffer.CPOffset(context.bufferCursor, context.keymap.TotalCount(), LineLocation::LineLastNonCR));
+        GetCurrentWindow()->SetBufferCursor(cursorItr.MoveClamped(context.keymap.TotalCount()));
         context.commandResult.flags |= CommandResultFlags::HandledCount;
         return true;
     }
     else if (mappedCommand == id_MotionLeft)
     {
-        auto lineStart = context.buffer.GetLinePos(context.bufferCursor, LineLocation::LineBegin);
-        GetCurrentWindow()->SetBufferCursor(std::max(context.bufferCursor - context.keymap.TotalCount(), lineStart));
+        GetCurrentWindow()->SetBufferCursor(cursorItr.MoveClamped(-context.keymap.TotalCount()));
         context.commandResult.flags |= CommandResultFlags::HandledCount;
         return true;
     }
     else if (mappedCommand == id_MotionStandardRight)
     {
-        GetCurrentWindow()->SetBufferCursor(bufferCursor + 1);
+        GetCurrentWindow()->SetBufferCursor(cursorItr.MoveClamped(1, LineLocation::LineCRBegin));
         return true;
     }
     else if (mappedCommand == id_MotionStandardLeft)
     {
-        GetCurrentWindow()->SetBufferCursor(bufferCursor - 1);
+        GetCurrentWindow()->SetBufferCursor(cursorItr.MoveClamped(-1, LineLocation::LineCRBegin));
         return true;
     }
     else if (mappedCommand == id_MotionStandardUp)
@@ -1014,11 +1014,9 @@ bool ZepMode::GetCommand(CommandContext& context)
     }
     else if (mappedCommand == id_Backspace)
     {
-        auto loc = context.bufferCursor;
-
         // In insert mode, we are 'on' the character after the one we want to delete
-        context.beginRange = context.buffer.LocationFromOffsetByChars(loc, -1);
-        context.endRange = context.buffer.LocationFromOffsetByChars(loc, 0);
+        context.beginRange = cursorItr.PeekClamped(-1);
+        context.endRange = cursorItr;
         context.op = CommandOperation::Delete;
     }
     else if (mappedCommand == id_MotionWord)
@@ -1114,8 +1112,6 @@ bool ZepMode::GetCommand(CommandContext& context)
     }
     else if (mappedCommand == id_Delete)
     {
-        auto loc = context.bufferCursor;
-
         if (m_currentMode == EditorMode::Visual)
         {
             auto range = GetNormalizedVisualRange();
@@ -1126,20 +1122,11 @@ bool ZepMode::GetCommand(CommandContext& context)
         }
         else
         {
-            // Don't allow x to delete beyond the end of the line
-            // Not sure what/where this is from!
-            if (context.keymap.commandWithoutGroups != "x" || std::isgraph(ToASCII(context.buffer.GetText()[loc])) || std::isblank(ToASCII(context.buffer.GetText()[loc])))
-            {
-                context.beginRange = loc;
-                context.endRange = std::min(context.buffer.GetLinePos(loc, LineLocation::LineCRBegin),
-                    context.buffer.LocationFromOffsetByChars(loc, context.keymap.TotalCount()));
-                context.op = CommandOperation::Delete;
-                context.commandResult.flags |= CommandResultFlags::HandledCount;
-            }
-            else
-            {
-                ResetCommand();
-            }
+            // Remember all ranges are exclusive of the end; so we allow to delete to the line end
+            context.beginRange = cursorItr;
+            context.endRange = cursorItr.PeekClamped(context.keymap.TotalCount(), LineLocation::LineCRBegin);
+            context.op = CommandOperation::Delete;
+            context.commandResult.flags |= CommandResultFlags::HandledCount;
         }
     }
     else if (mappedCommand == id_OpenLineBelow)
@@ -1248,7 +1235,7 @@ bool ZepMode::GetCommand(CommandContext& context)
             }
             else
             {
-                context.beginRange = context.buffer.LocationFromOffsetByChars(context.bufferCursor, 1, LineLocation::LineCRBegin);
+                context.beginRange = cursorItr.PeekClamped(1, LineLocation::LineCRBegin);
             }
             context.op = CommandOperation::Insert;
         }
@@ -1555,8 +1542,8 @@ bool ZepMode::GetCommand(CommandContext& context)
             // Get the range from visual, or use the cursor location
             if (!GetOperationRange("visual", context.currentMode, context.beginRange, context.endRange))
             {
-                context.beginRange = bufferCursor;
-                context.endRange = buffer.LocationFromOffsetByChars(bufferCursor, context.keymap.TotalCount());
+                context.beginRange = cursorItr;
+                context.endRange = cursorItr.PeekClamped(context.keymap.TotalCount(), LineLocation::LineCRBegin);
             }
 
             context.commandResult.modeSwitch = EditorMode::Normal;
@@ -1733,8 +1720,9 @@ bool ZepMode::GetOperationRange(const std::string& op, EditorMode currentMode, B
     }
     else if (op == "cursor")
     {
-        beginRange = bufferCursor;
-        endRange = buffer.LocationFromOffsetByChars(bufferCursor, 1);
+        auto cursorItr = GlyphIterator(buffer, bufferCursor);
+        beginRange = cursorItr;
+        endRange = cursorItr.PeekClamped(1);
     }
     return beginRange != -1;
 }
@@ -1758,7 +1746,7 @@ void ZepMode::UpdateVisualSelection()
             }
             else
             {
-                m_visualEnd = GetCurrentWindow()->GetBuffer().LocationFromOffsetByChars(GetCurrentWindow()->GetBufferCursor(), 1);
+                m_visualEnd = GlyphIterator(GetCurrentWindow()->GetBuffer(), GetCurrentWindow()->GetBufferCursor()).PeekClamped(1, LineLocation::LineCRBegin);
             }
         }
 

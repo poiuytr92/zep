@@ -133,21 +133,21 @@ TEST_F(VimTest, ESCAPE)
 
 TEST_F(VimTest, RETURN)
 {
-    pBuffer->SetText("one\ntwo");
+    pBuffer->SetText(u8"Õne\ntwo");
     spMode->AddKeyPress(ExtKeys::RETURN);
     ASSERT_EQ(pWindow->BufferToDisplay().y, 1);
 
     spMode->AddCommandText("li");
     spMode->AddKeyPress(ExtKeys::RETURN);
-    ASSERT_STREQ(pBuffer->GetText().string().c_str(), "one\nt\nwo");
+    ASSERT_STREQ(pBuffer->GetText().string().c_str(), u8"Õne\nt\nwo");
 }
 
 TEST_F(VimTest, TAB)
 {
-    pBuffer->SetText("Hello");
+    pBuffer->SetText(u8"HellÕ");
     spMode->AddCommandText("lllllllli");
     spMode->AddKeyPress(ExtKeys::TAB);
-    ASSERT_STREQ(pBuffer->GetText().string().c_str(), "Hell    o");
+    ASSERT_STREQ(pBuffer->GetText().string().c_str(), u8"Hell    Õ");
 }
 
 TEST_F(VimTest, BACKSPACE)

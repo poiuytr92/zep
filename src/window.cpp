@@ -26,7 +26,7 @@ struct WindowPass
         Max
     };
 };
-}
+} // namespace
 
 // A 'window' is like a vim window; i.e. a region inside a tab
 namespace Zep
@@ -169,6 +169,7 @@ void ZepWindow::Notify(std::shared_ptr<ZepMessage> payload)
             // Make sure the cursor is on its 'display' part of the flash cycle after an edit.
             GetEditor().ResetCursorTimer();
         }
+
         // Remove tooltips that might be present
         DisableToolTipTillMove();
     }
@@ -299,7 +300,7 @@ void ZepWindow::GetCharPointer(ByteIndex loc, const uint8_t*& pBegin, const uint
         hiddenChar = true;
     }
 
-    pEnd = pBegin + UTF8_CHAR_LEN(*pBegin);
+    pEnd = pBegin + utf8_codepoint_length(*pBegin);
 }
 
 float ZepWindow::GetLineTopMargin(long line)
@@ -325,7 +326,7 @@ float ZepWindow::GetLineTopMargin(long line)
     return height;
 }
 
-// This is the most expensive part of window update; applying line span generation for wrapped text and unicode 
+// This is the most expensive part of window update; applying line span generation for wrapped text and unicode
 // character sizes which may vary in byte count and physical pixel width
 // It can take about a millisecond to do during editing on release buildj; but this is fast enough for now.
 // There are several ways in which this function can be optimized:
@@ -383,7 +384,7 @@ void ZepWindow::UpdateLineSpans()
 
         // These offsets are 0 -> n + 1, i.e. the last offset the buffer returns is 1 beyond the current
         // Note: Must not use pointers into the character buffer!
-        for (auto ch = lineByteRange.first; ch < lineByteRange.second; ch += UTF8_CHAR_LEN(textBuffer[ch]))
+        for (auto ch = lineByteRange.first; ch < lineByteRange.second; ch += utf8_codepoint_length(textBuffer[ch]))
         {
             const uint8_t* pCh = &textBuffer[ch];
             const auto textSize = display.GetCharSize(pCh);
@@ -410,7 +411,7 @@ void ZepWindow::UpdateLineSpans()
                     fullLineHeight = textHeight + margins.x + margins.y;
 
                     // Now jump to the next 'screen line' for the rest of this 'buffer line'
-                    lineInfo->lineByteRange = BufferByteRange(ch, UTF8_CHAR_LEN(textBuffer[ch]));
+                    lineInfo->lineByteRange = BufferByteRange(ch, utf8_codepoint_length(textBuffer[ch]));
                     lineInfo->lastNonCROffset = 0;
                     lineInfo->lineIndex = spanLine;
                     lineInfo->bufferLineNumber = bufferLine;
@@ -427,7 +428,7 @@ void ZepWindow::UpdateLineSpans()
             }
 
             lineInfo->spanYPx = bufferPosYPx;
-            lineInfo->lineByteRange.second = ch + UTF8_CHAR_LEN(textBuffer[ch]);
+            lineInfo->lineByteRange.second = ch + utf8_codepoint_length(textBuffer[ch]);
             lineInfo->pixelRenderRange.y = screenPosX;
             lineInfo->lastNonCROffset = std::max(ch, 0l);
         }
@@ -459,22 +460,21 @@ void ZepWindow::UpdateLineSpans()
     for (auto& line : m_windowLines)
     {
         auto ch = line->lineByteRange.first;
-        
+
         // TODO: Optimize
         line->lineCodePoints.clear();
         uint32_t points = 0;
         while (ch < line->lineByteRange.second)
         {
             LineCharInfo info;
-            
-            // Important note: We can't navigate the text buffer by pointers!
-            // It is a gap buffer, so the pointers may not be contiguous.  Need to use operators or iterators
-            long len = UTF8_CHAR_LEN(textBuffer[ch]);
-            info.byteIndex = ByteIndex(ch);
-            info.size = display.GetTextSize(&textBuffer[ch], &textBuffer[ch] + len);
-            line->lineCodePoints.push_back(info);
 
-            ch += len;
+            // Important note: We can't navigate the text buffer by pointers!
+            // The gap buffer will get in the way; so need to be careful to use [] or an iterator
+            // GetCharSize is cached for speed on debug builds.
+            info.byteIndex = ByteIndex(ch);
+            info.size = display.GetCharSize(&textBuffer[ch]);
+            line->lineCodePoints.push_back(info);
+            ch += utf8_codepoint_length(textBuffer[ch]);
             points++;
         }
     }
@@ -614,7 +614,6 @@ bool ZepWindow::DisplayLine(SpanInfo& lineInfo, int displayPass)
 
     // Draw line numbers
     auto displayLineNumber = [&]() {
-
         if (!IsInsideTextRegion(NVec2i(0, lineInfo.lineIndex)))
             return;
 
@@ -1026,6 +1025,9 @@ void ZepWindow::SetBuffer(ZepBuffer* pBuffer)
 
 ByteIndex ZepWindow::GetBufferCursor()
 {
+    // Ensure cursor is always valid inside the buffer
+    m_bufferCursor = m_pBuffer->Clamp(m_bufferCursor);
+
     return m_bufferCursor;
 }
 
@@ -1091,24 +1093,26 @@ void ZepWindow::UpdateLayout(bool force)
 
 void ZepWindow::GetCursorInfo(NVec2f& pos, NVec2f& size)
 {
-    auto& display = GetEditor().GetDisplay();
     auto cursorCL = BufferToDisplay();
     auto cursorBufferLine = GetCursorLineInfo(cursorCL.y);
 
     NVec2f cursorSize;
-    auto& tex = m_pBuffer->GetText();
     bool found = false;
     float xPos = m_textRegion->rect.topLeftPx.x;
-    for (auto ch = cursorBufferLine.lineByteRange.first; ch < cursorBufferLine.lineByteRange.second; ch++)
+
+    int count = 0;
+    for (auto ch : cursorBufferLine.lineCodePoints)
     {
-        cursorSize = display.GetCharSize(&tex[ch]);
-        if ((ch - cursorBufferLine.lineByteRange.first) == cursorCL.x)
+        if (count == cursorCL.x)
         {
             found = true;
+            cursorSize = ch.size;
             break;
         }
-        xPos += cursorSize.x;
+        count++;
+        xPos += ch.size.x;
     }
+
     if (!found)
     {
         cursorSize = GetEditor().GetDisplay().GetDefaultCharSize();
@@ -1422,53 +1426,43 @@ void ZepWindow::MoveCursorY(int yDistance, LineLocation clampLocation)
     if (target.x < m_lastCursorColumn)
         target.x = m_lastCursorColumn;
 
-    // Update the master buffer cursor
-    m_bufferCursor = line.lineByteRange.first + target.x;
+    assert(!line.lineCodePoints.empty());
 
-    // Ensure the current x offset didn't walk us off the line
-    // We are clamping to visible line here
-    m_bufferCursor = std::max(m_bufferCursor, line.lineByteRange.first);
-    m_bufferCursor = std::min(m_bufferCursor, line.lineByteRange.second - 1);
+    // Move to the same codepoint offset on the line below
+    target.x = std::min(target.x, long(line.lineCodePoints.size() - 1));
+    target.x = std::max(target.x, long(0));
+
+    GlyphIterator cursorItr(*m_pBuffer, line.lineCodePoints[target.x].byteIndex);
 
     // We can't call the buffer's LineLocation code, because when moving in span lines,
     // we are technically not moving in buffer lines; we are stepping in wrapped buffer lines.
-    // But this function still requires a line end clamp! So we calculate it here based on the line info
-    // In practice, we only care about LastNonCR and CRBegin, which are the Y Motions that Standard and Vim
-    // Require (because standard has the cursor _on_ the CR sometimes, but Vim modes do not.
-    // Because the LineLastNonCR might find a 'split' line which has a line end in the middle of the line,
-    // it has to be more tricky to find the last 'Non CR' character, as here
-    ByteIndex clampOffset = line.lineByteRange.second;
     switch (clampLocation)
     {
-    case LineLocation::LineBegin:
-        clampOffset = line.lineByteRange.first;
-        break;
-    case LineLocation::LineFirstGraphChar:
-        clampOffset = line.lineByteRange.first;
-        break;
-    case LineLocation::BeyondLineEnd:
-        clampOffset = line.lineByteRange.second;
-        break;
-    case LineLocation::LineLastNonCR:
-        if ((line.lineByteRange.second > 0) && (m_pBuffer->GetText()[line.lineByteRange.second - 1] == '\n' || m_pBuffer->GetText()[line.lineByteRange.second - 1] == 0))
-        {
-            clampOffset = std::max(line.lineByteRange.first, line.lineByteRange.second - 2);
-        }
-        else
-        {
-            clampOffset = std::max(line.lineByteRange.first, line.lineByteRange.second - 1);
-        }
-        break;
-    case LineLocation::LineCRBegin:
-        clampOffset = line.lineByteRange.second - 1;
-        break;
     default:
+    case LineLocation::LineBegin:
+    case LineLocation::LineFirstGraphChar:
+    case LineLocation::BeyondLineEnd:
         assert(!"Not supported Y motion line clamp!");
         break;
+    case LineLocation::LineLastNonCR: {
+        // Don't skip back if we are right at the start of the line
+        // (i.e. an empty line)
+        if (target.x != 0 &&
+            (cursorItr.Char() == '\n' || cursorItr.Char() == 0))
+        {
+            cursorItr.MoveClamped(-1, LineLocation::LineLastNonCR);
+        }
     }
-    m_bufferCursor = std::min(m_bufferCursor, clampOffset);
+    break;
+    case LineLocation::LineCRBegin:
+        // We already clamped to here above by testing for max codepoint
+        // Last codepoint is the carriage return
+        break;
+    }
 
+    m_bufferCursor = cursorItr.ToByteIndex();
     m_cursorMoved = true;
+
     GetEditor().ResetCursorTimer();
 
     m_pBuffer->SetLastEditLocation(m_bufferCursor);
@@ -1486,21 +1480,37 @@ NVec2i ZepWindow::BufferToDisplay(const ByteIndex& loc)
     NVec2i ret(0, 0);
     int line_number = 0;
 
-    // TODO:  A map
+    // TODO: Performance; quick lookup for line
     for (auto& line : m_windowLines)
     {
+        // If inside the line...
         if (line->lineByteRange.first <= loc && line->lineByteRange.second > loc)
         {
             ret.y = line_number;
-            ret.x = loc - line->lineByteRange.first;
-            return ret;
+            ret.x = 0;
+
+            // Scan the code points for where we are
+            for (auto& ch : line->lineCodePoints)
+            {
+                if (ch.byteIndex == loc)
+                {
+                    return ret;
+                }
+                ret.x++;
+            }
         }
         line_number++;
     }
 
-    // Max
-    ret.y = int(m_windowLines.size() - 1);
-    ret.x = m_windowLines[m_windowLines.size() - 1]->lineByteRange.second - 1;
+    assert(!m_windowLines.empty());
+    if (m_windowLines.empty())
+    {
+        return NVec2i(0, 0);
+    }
+
+    // Max Last line, last code point offset
+    ret.y = long(m_windowLines.size() - 1);
+    ret.x = long(m_windowLines[m_windowLines.size() - 1]->lineCodePoints.size() - 1);
     return ret;
 }
 

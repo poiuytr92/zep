@@ -37,6 +37,8 @@ IF (BUILD_DEMOS AND BUILD_IMGUI)
     endif()
 
     copy_existing_files(${DEMO_NAME} ${MUTILS_INCLUDE_DIR}/imgui/misc/fonts/Cousine-Regular.ttf ${CMAKE_CURRENT_BINARY_DIR}/$(Configuration) )
+    copy_existing_files(${DEMO_NAME} ${MUTILS_INCLUDE_DIR}/imgui/misc/fonts/DroidSans.ttf ${CMAKE_CURRENT_BINARY_DIR}/$(Configuration) )
+    copy_existing_files(${DEMO_NAME} ${MUTILS_INCLUDE_DIR}/imgui/misc/fonts/Roboto-Medium.ttf ${CMAKE_CURRENT_BINARY_DIR}/$(Configuration) )
     copy_existing_files(${DEMO_NAME} ${MUTILS_INCLUDE_DIR}/chibi/init-7.scm ${CMAKE_CURRENT_BINARY_DIR}/$(Configuration) )
 
     target_link_libraries (${DEMO_NAME} 

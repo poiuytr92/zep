@@ -10,13 +10,14 @@
 #include <thread>
 
 #include <imgui/imgui.h>
+
 #include <imgui/examples/imgui_impl_opengl3.h>
 #include <imgui/examples/imgui_impl_sdl.h>
 #include <imgui/misc/freetype/imgui_freetype.h>
 
+#include <mutils/chibi/chibi.h>
 #include <mutils/file/file.h>
 #include <mutils/logger/logger.h>
-#include <mutils/chibi/chibi.h>
 
 #include <clip/clip.h>
 #include <tclap/CmdLine.h>
@@ -148,12 +149,13 @@ struct ZepContainer : public IZepComponent, public ZepRepl
 
         // File watcher not used on apple yet ; needs investigating as to why it doesn't compile/run
 #ifndef __APPLE__
-        MUtils::Watcher::Instance().AddWatch(ZEP_ROOT, [&](const ZepPath& path) {
-            if (spEditor)
-            {
-                spEditor->OnFileChanged(ZepPath(ZEP_ROOT) / path);
-            }
-        },
+        MUtils::Watcher::Instance().AddWatch(
+            ZEP_ROOT, [&](const ZepPath& path) {
+                if (spEditor)
+                {
+                    spEditor->OnFileChanged(ZepPath(ZEP_ROOT) / path);
+                }
+            },
             false);
 #endif
 
@@ -165,8 +167,7 @@ struct ZepContainer : public IZepComponent, public ZepRepl
             return ret;
         };
 
-        fnIsFormComplete = [&](const std::string& str, int& indent)
-        {
+        fnIsFormComplete = [&](const std::string& str, int& indent) {
             return IsFormComplete(str, indent);
         };
 
@@ -374,20 +375,20 @@ int main(int argc, char** argv)
     // Setup style
     ImGui::StyleColorsDark();
 
-    // Font for editor
-    static const ImWchar ranges[] = {
-        0x0020,
-        0x00FF, // Basic Latin + Latin Supplement
-        0,
-    };
+    ImVector<ImWchar> ranges;
+    ImFontGlyphRangesBuilder builder;
+    builder.AddRanges(io.Fonts->GetGlyphRangesDefault()); // Add one of the default ranges
+    //builder.AddRanges(io.Fonts->GetGlyphRangesCyrillic()); // Add one of the default ranges
+    builder.AddRanges(io.Fonts->GetGlyphRangesThai()); // Add one of the default ranges
+    builder.BuildRanges(&ranges); // Build the final result (ordered ranges with all the unique characters submitted)
 
     ImFontConfig cfg;
     cfg.OversampleH = 3;
     cfg.OversampleV = 3;
 
-    io.Fonts->AddFontFromFileTTF((std::string(SDL_GetBasePath()) + "Cousine-Regular.ttf").c_str(), 16 * GetDisplayScale(), &cfg, ranges);
-    
-    unsigned int flags = 0;// ImGuiFreeType::NoHinting;
+    io.Fonts->AddFontFromFileTTF((std::string(SDL_GetBasePath()) + "DroidSans.ttf").c_str(), 16 * GetDisplayScale(), &cfg, ranges.Data);
+
+    unsigned int flags = 0; // ImGuiFreeType::NoHinting;
     ImGuiFreeType::BuildFontAtlas(io.Fonts, flags);
 
     bool show_demo_window = false;
@@ -555,7 +556,7 @@ int main(int argc, char** argv)
         auto max = ImGui::GetContentRegionAvail();
         max.x = std::max(1.0f, max.x);
         max.y = std::max(1.0f, max.y);
-        
+
         // Fill the window
         max.x = min.x + max.x;
         max.y = min.y + max.y;
@@ -564,7 +565,6 @@ int main(int argc, char** argv)
         // Display the editor inside this window
         zep.spEditor->Display();
         zep.spEditor->HandleInput();
-
 
         ImGui::End();
         ImGui::PopStyleVar(4);

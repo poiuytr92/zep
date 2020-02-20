@@ -5,6 +5,7 @@
 #include <unordered_map>
 
 #include "buffer.h"
+#include "zep/mcommon/utf8/unchecked.h"
 
 namespace Zep
 {
@@ -138,6 +139,7 @@ public:
     void Display();
     void DisplayCursor();
 
+    ByteIndex CPOffset(ByteIndex location, LineLocation clampLocation = LineLocation::LineLastNonCR) const;
     void MoveCursorY(int yDistance, LineLocation clampLocation = LineLocation::LineLastNonCR);
     void MoveToBufferLine(long line, LineLocation clampLocation = LineLocation::LineFirstGraphChar);
 

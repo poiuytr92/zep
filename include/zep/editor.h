@@ -59,8 +59,6 @@ inline bool ZTestFlags(uint32_t flag, uint32_t value) { return ((flag & value) =
 inline void ZSetFlags(uint32_t& flag, uint32_t value, bool set = true) { if (set) { flag |= value; } }
 inline void ZClearFlags(uint32_t& flag, uint32_t value) { flag &= ~value; }
 
-#define UTF8_CHAR_LEN(byte) ((0xE5000000 >> ((byte >> 3) & 0x1e)) & 3) + 1
-
 namespace ZepEditorFlags
 {
 enum
