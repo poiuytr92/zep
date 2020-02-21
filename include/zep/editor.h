@@ -55,9 +55,21 @@ class IZepFileSystem;
 struct Region;
 
 // Helpers 
-inline bool ZTestFlags(uint32_t flag, uint32_t value) { return ((flag & value) == flag ? true : false); }
-inline void ZSetFlags(uint32_t& flag, uint32_t value, bool set = true) { if (set) { flag |= value; } }
-inline void ZClearFlags(uint32_t& flag, uint32_t value) { flag &= ~value; }
+inline bool ZTestFlags(uint32_t flags, uint32_t value) { return ((flags & value) ? true : false); }
+inline uint32_t ZSetFlags(uint32_t& flags, uint32_t value, bool set = true) { if (set) { flags |= value; } return flags; }
+inline uint32_t ZClearFlags(uint32_t& flags, uint32_t value) { flags &= ~value; return flags; }
+inline uint32_t ZToggleFlags(uint32_t flags, uint32_t value)
+{
+    if (ZTestFlags(flags, value))
+    {
+        ZClearFlags(flags, value);
+    }
+    else
+    {
+        ZSetFlags(flags, value);
+    }
+    return flags;
+}
 
 namespace ZepEditorFlags
 {

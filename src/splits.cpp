@@ -22,7 +22,7 @@ void LayoutRegion(Region& region)
     NRectf currentRect = region.rect;
     auto remaining = (region.vertical ? currentRect.Width() : currentRect.Height()) - totalFixedSize;
     auto perExpanding = remaining / expanders;
-    
+
     for (auto& r : region.children)
     {
         r->rect = currentRect;
@@ -56,11 +56,11 @@ void LayoutRegion(Region& region)
         r->rect.topLeftPx += r->margin;
         r->rect.bottomRightPx -= r->margin;
     }
-    
+
     for (auto& r : region.children)
     {
         LayoutRegion(*r);
     }
 }
 
-}
+} // namespace Zep

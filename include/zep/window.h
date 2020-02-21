@@ -84,7 +84,9 @@ enum
     None = (0),
     ShowWhiteSpace = (1 << 0),
     ShowCR = (1 << 1),
-    Modal = (1 << 2)
+    ShowLineNumbers = (1 << 2),
+    ShowIndicators = (1 << 3),
+    Modal = (1 << 4)
 };
 }
 
@@ -199,10 +201,11 @@ private:
     float GetLineTopMargin(long line);
 
 private:
-    // Layout of the window is based on these regions
-    std::shared_ptr<Region> m_bufferRegion;     // region of the display we are showing on.
-    std::shared_ptr<Region> m_textRegion;       // Text 
-    std::shared_ptr<Region> m_airlineRegion;    // Airline
+    NRectf m_displayRect;
+    std::shared_ptr<Region> m_bufferRegion;  // region of the display we are showing on.
+    std::shared_ptr<Region> m_editRegion;   // region of the window buffer editing 
+    std::shared_ptr<Region> m_textRegion;    // region of the display for text.
+    std::shared_ptr<Region> m_airlineRegion; // Airline
     std::shared_ptr<Region> m_numberRegion;     // Numbers
     std::shared_ptr<Region> m_indicatorRegion;  // Indicators (between numbers and text)
     std::shared_ptr<Region> m_vScrollRegion;    // Vertical scroller
@@ -225,7 +228,7 @@ private:
     bool m_layoutDirty = true;
     bool m_scrollVisibilityChanged = true;
     bool m_cursorMoved = true;
-    uint32_t m_windowFlags = WindowFlags::ShowWhiteSpace;
+    uint32_t m_windowFlags = WindowFlags::ShowWhiteSpace | WindowFlags::ShowIndicators | WindowFlags::ShowLineNumbers;
 
     // Cursor
     CursorType m_cursorType = CursorType::Normal;   // Type of cursor
@@ -240,6 +243,7 @@ private:
     std::vector<SpanInfo*> m_windowLines;   // Information about the currently displayed lines
     float m_bufferOffsetYPx = 0.0f;
     float m_bufferSizeYPx = 0.0f;
+    float m_bufferSizeXPx = 0.0f;
     NVec2i m_visibleLineRange = {0, 0};     // Offset of the displayed area into the text
     long m_maxDisplayLines = 0;
     float m_defaultLineSize = 0;

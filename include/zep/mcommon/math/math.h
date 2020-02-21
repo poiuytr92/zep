@@ -463,6 +463,11 @@ inline NRect<T> operator*(const NRect<T>& lhs, float val)
 {
     return NRect<T>(lhs.topLeftPx * val, lhs.bottomRightPx * val);
 }
+template <class T>
+inline NRect<T> operator-(const NRect<T>& lhs, const NRect<T>& rhs)
+{
+    return NRect<T>(lhs.topLeftPx.x - rhs.topLeftPx.x, lhs.bottomRightPx.y - rhs.topLeftPx.y);
+}
 template<class T>
 inline std::ostream& operator<< (std::ostream& str, const NRect<T>& region)
 {

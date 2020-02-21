@@ -2036,6 +2036,14 @@ bool ZepMode::HandleExCommand(std::string strCommand)
         {
             pWindow->ToggleFlag(WindowFlags::ShowCR);
         }
+        else if (strCommand == ":ZShowLineNumbers")
+        {
+            pWindow->ToggleFlag(WindowFlags::ShowLineNumbers);
+        }
+        else if (strCommand == ":ZShowIndicators")
+        {
+            pWindow->ToggleFlag(WindowFlags::ShowIndicators);
+        }
         else if (strCommand == ":ZShowInput")
         {
             GetEditor().GetConfig().showNormalModeKeyStrokes = !GetEditor().GetConfig().showNormalModeKeyStrokes;
