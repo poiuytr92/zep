@@ -11,7 +11,8 @@ void LayoutRegion(Region& region)
     {
         if (r->flags & RegionFlags::Fixed)
         {
-            totalFixedSize += r->fixed_size;
+            // This region needs its size plus margin
+            totalFixedSize += (r->fixed_size + (r->padding.x + r->padding.y));
         }
         else
         {
@@ -20,41 +21,45 @@ void LayoutRegion(Region& region)
     }
 
     NRectf currentRect = region.rect;
+    currentRect.Adjust(region.margin.x, region.margin.y, -region.margin.z, -region.margin.w);
+
     auto remaining = ((region.layoutType == RegionLayoutType::HBox) ? currentRect.Width() : currentRect.Height()) - totalFixedSize;
     auto perExpanding = remaining / expanders;
 
-    for (auto& r : region.children)
+    perExpanding = std::max(0.0f, perExpanding);
+
+    for (auto& rcChild : region.children)
     {
-        r->rect = currentRect;
+        rcChild->rect = currentRect;
 
         if (region.layoutType == RegionLayoutType::VBox)
         {
-            if (r->flags & RegionFlags::Fixed)
+            rcChild->rect.topLeftPx.y += rcChild->padding.x;
+            if (rcChild->flags & RegionFlags::Fixed)
             {
-                r->rect.bottomRightPx.y = currentRect.topLeftPx.y + r->fixed_size;
-                currentRect.topLeftPx.y += r->fixed_size;
+                rcChild->rect.bottomRightPx.y = rcChild->rect.Top() + rcChild->fixed_size;
+                currentRect.topLeftPx.y = rcChild->rect.Bottom() + rcChild->padding.y;
             }
             else
             {
-                r->rect.bottomRightPx.y = currentRect.topLeftPx.y + perExpanding;
-                currentRect.topLeftPx.y += perExpanding;
+                rcChild->rect.bottomRightPx.y = rcChild->rect.Top() + perExpanding;
+                currentRect.topLeftPx.y = rcChild->rect.Bottom() + rcChild->padding.y;
             }
         }
         else if (region.layoutType == RegionLayoutType::HBox)
         {
-            if (r->flags & RegionFlags::Fixed)
+            rcChild->rect.topLeftPx.x += rcChild->padding.x;
+            if (rcChild->flags & RegionFlags::Fixed)
             {
-                r->rect.bottomRightPx.x = currentRect.topLeftPx.x + r->fixed_size;
-                currentRect.topLeftPx.x += r->fixed_size;
+                rcChild->rect.bottomRightPx.x = rcChild->rect.Left() + rcChild->fixed_size;
+                currentRect.topLeftPx.x = rcChild->rect.Right() + rcChild->padding.y;
             }
             else
             {
-                r->rect.bottomRightPx.x = currentRect.topLeftPx.x + perExpanding;
-                currentRect.topLeftPx.x += perExpanding;
+                rcChild->rect.bottomRightPx.x = rcChild->rect.Left() + perExpanding;
+                currentRect.topLeftPx.x = rcChild->rect.Right() + rcChild->padding.y;
             }
         }
-        r->rect.topLeftPx += r->margin;
-        r->rect.bottomRightPx -= r->margin;
     }
 
     for (auto& r : region.children)

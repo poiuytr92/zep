@@ -15,7 +15,8 @@ namespace RegionFlags
 enum Flags
 {
     Fixed = (1 << 0),
-    Expanding = (1 << 1)
+    Expanding = (1 << 1),
+    AlignCenter = (1 << 2)
 };
 };
 
@@ -32,7 +33,8 @@ struct Region
     uint32_t flags = RegionFlags::Expanding;
     NRectf rect;
     float fixed_size = 0.0f;
-    NVec2f margin = NVec2f(0.0f, 0.0f);
+    NVec2f padding = NVec2f(0.0f, 0.0f);
+    NVec4f margin = NVec4f(0.0f, 0.0f, 0.0f, 0.0f);
 
     std::shared_ptr<Region> pParent;
     std::vector<std::shared_ptr<Region>> children;

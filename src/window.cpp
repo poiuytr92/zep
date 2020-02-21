@@ -56,7 +56,7 @@ ZepWindow::ZepWindow(ZepTabWindow& window, ZepBuffer* buffer)
 
     // Leave a gap before/after text for the line numbers
     // so they aren't quite so close
-    m_textRegion->margin = NVec2f(DPI_X(8), 0);
+    m_textRegion->padding = NVec2f(DPI_X(8), 0);
 
     m_editRegion = std::make_shared<Region>();
     m_editRegion->flags = RegionFlags::Expanding;
