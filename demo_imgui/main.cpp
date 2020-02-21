@@ -378,15 +378,17 @@ int main(int argc, char** argv)
     ImVector<ImWchar> ranges;
     ImFontGlyphRangesBuilder builder;
     builder.AddRanges(io.Fonts->GetGlyphRangesDefault()); // Add one of the default ranges
-    //builder.AddRanges(io.Fonts->GetGlyphRangesCyrillic()); // Add one of the default ranges
-    builder.AddRanges(io.Fonts->GetGlyphRangesThai()); // Add one of the default ranges
+    builder.AddRanges(io.Fonts->GetGlyphRangesCyrillic()); // Add one of the default ranges
+    //builder.AddRanges(io.Fonts->GetGlyphRangesThai()); // Add one of the default ranges
+    ImWchar greek_range[] = { 0x300, 0x52F, 0x1f00, 0x1fff, 0, 0 };
+    builder.AddRanges(greek_range);
     builder.BuildRanges(&ranges); // Build the final result (ordered ranges with all the unique characters submitted)
 
     ImFontConfig cfg;
     cfg.OversampleH = 3;
     cfg.OversampleV = 3;
 
-    io.Fonts->AddFontFromFileTTF((std::string(SDL_GetBasePath()) + "DroidSans.ttf").c_str(), 16 * GetDisplayScale(), &cfg, ranges.Data);
+    io.Fonts->AddFontFromFileTTF((std::string(SDL_GetBasePath()) + "Roboto-Medium.ttf").c_str(), 16 * GetDisplayScale(), &cfg, ranges.Data);
 
     unsigned int flags = 0; // ImGuiFreeType::NoHinting;
     ImGuiFreeType::BuildFontAtlas(io.Fonts, flags);
@@ -534,10 +536,6 @@ int main(int argc, char** argv)
         int w, h;
         SDL_GetWindowSize(window, &w, &h);
 
-        // 1. Show the big demo window (Most of the sample code is in ImGui::ShowDemoWindow()! You can browse its code to learn more about Dear ImGui!).
-        if (show_demo_window)
-            ImGui::ShowDemoWindow(&show_demo_window);
-
         // This is a bit messy; and I have no idea why I don't need to remove the menu fixed_size from the calculation!
         // The point of this code is to fill the main window with the Zep window
         // It is only done once so the user can play with the window if they want to for testing
@@ -569,6 +567,10 @@ int main(int argc, char** argv)
         ImGui::End();
         ImGui::PopStyleVar(4);
         ImGui::PopStyleColor(1);
+
+        // 1. Show the big demo window (Most of the sample code is in ImGui::ShowDemoWindow()! You can browse its code to learn more about Dear ImGui!).
+        if (show_demo_window)
+            ImGui::ShowDemoWindow(&show_demo_window);
 
         // Rendering
         ImGui::Render();
