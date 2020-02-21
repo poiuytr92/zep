@@ -46,7 +46,7 @@ ZepWindow::ZepWindow(ZepTabWindow& window, ZepBuffer* buffer)
     m_vScrollRegion = std::make_shared<Region>();
 
     m_bufferRegion->flags = RegionFlags::Expanding;
-    m_bufferRegion->vertical = false;
+    m_bufferRegion->layoutType = RegionLayoutType::VBox;
 
     m_numberRegion->flags = RegionFlags::Fixed;
     m_indicatorRegion->flags = RegionFlags::Fixed;
@@ -60,7 +60,7 @@ ZepWindow::ZepWindow(ZepTabWindow& window, ZepBuffer* buffer)
 
     m_editRegion = std::make_shared<Region>();
     m_editRegion->flags = RegionFlags::Expanding;
-    m_editRegion->vertical = true;
+    m_editRegion->layoutType = RegionLayoutType::HBox;
 
     m_bufferRegion->children.push_back(m_editRegion);
     m_editRegion->children.push_back(m_numberRegion);
@@ -99,21 +99,21 @@ void ZepWindow::UpdateScrollers()
 
     if (GetEditor().GetConfig().showScrollBar == 0)
     {
-        m_vScrollRegion->fixed_size = NVec2f(0.0f);
+        m_vScrollRegion->fixed_size = 0.0f;
     }
     else
     {
         if (m_vScroller->vScrollVisiblePercent >= 1.0f && GetEditor().GetConfig().showScrollBar != 2)
         {
-            m_vScrollRegion->fixed_size = NVec2f(0.0f, 0.0f);
+            m_vScrollRegion->fixed_size = 0.0f;
         }
         else
         {
-            m_vScrollRegion->fixed_size = NVec2f(ScrollBarSize * GetEditor().GetPixelScale(), 0.0f);
+            m_vScrollRegion->fixed_size = ScrollBarSize * GetEditor().GetPixelScale();
         }
     }
 
-    if (m_vScrollRegion->rect.Width() != m_vScrollRegion->fixed_size.x)
+    if (m_vScrollRegion->rect.Width() != m_vScrollRegion->fixed_size)
     {
         m_scrollVisibilityChanged = true;
     }
@@ -225,7 +225,7 @@ void ZepWindow::SetDisplayRegion(const NRectf& region)
     m_layoutDirty = true;
     m_bufferRegion->rect = region;
 
-    m_airlineRegion->fixed_size = NVec2f(0.0f, GetEditor().GetDisplay().GetFontHeightPixels());
+    m_airlineRegion->fixed_size = GetEditor().GetDisplay().GetFontHeightPixels();
 
     m_defaultLineSize = GetEditor().GetDisplay().GetFontHeightPixels();
 }
@@ -1090,20 +1090,20 @@ void ZepWindow::UpdateLayout(bool force)
         // Border, and move the text across a bit
         if (ZTestFlags(m_windowFlags, WindowFlags::ShowLineNumbers) && GetEditor().GetConfig().showLineNumbers)
         {
-            m_numberRegion->fixed_size = NVec2f(float(leftBorderChars) * GetEditor().GetDisplay().GetDefaultCharSize().x, 0);
+            m_numberRegion->fixed_size = float(leftBorderChars) * GetEditor().GetDisplay().GetDefaultCharSize().x;
         }
         else
         {
-            m_numberRegion->fixed_size = NVec2f(0, 0);
+            m_numberRegion->fixed_size = 0.0f;
         }
 
         if (ZTestFlags(m_windowFlags, WindowFlags::ShowIndicators) && GetEditor().GetConfig().showIndicatorRegion)
         {
-            m_indicatorRegion->fixed_size = NVec2f(GetEditor().GetDisplay().GetDefaultCharSize().x * 1.5f, 0.0f);
+            m_indicatorRegion->fixed_size = GetEditor().GetDisplay().GetDefaultCharSize().x * 1.5f;
         }
         else
         {
-            m_indicatorRegion->fixed_size = NVec2f(0, 0);
+            m_indicatorRegion->fixed_size = 0.0f;
         }
 
         LayoutRegion(*m_bufferRegion);
@@ -1411,16 +1411,6 @@ void ZepWindow::Display()
             screenPosYPx.x += textSize.x;
         }
     }
-}
-
-// *** Motions ***
-void ZepWindow::MoveToBufferLine(long line, LineLocation clampLocation)
-{
-    long start, end;
-    m_pBuffer->GetLineOffsets(line, start, end);
-
-    auto targetDisplayCursor = BufferToDisplay(start);
-    MoveCursorY(targetDisplayCursor.y - BufferToDisplay().y, clampLocation);
 }
 
 void ZepWindow::MoveCursorY(int yDistance, LineLocation clampLocation)

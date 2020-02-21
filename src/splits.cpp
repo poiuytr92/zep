@@ -11,7 +11,7 @@ void LayoutRegion(Region& region)
     {
         if (r->flags & RegionFlags::Fixed)
         {
-            totalFixedSize += region.vertical ? r->fixed_size.x : r->fixed_size.y;
+            totalFixedSize += r->fixed_size;
         }
         else
         {
@@ -20,19 +20,19 @@ void LayoutRegion(Region& region)
     }
 
     NRectf currentRect = region.rect;
-    auto remaining = (region.vertical ? currentRect.Width() : currentRect.Height()) - totalFixedSize;
+    auto remaining = ((region.layoutType == RegionLayoutType::HBox) ? currentRect.Width() : currentRect.Height()) - totalFixedSize;
     auto perExpanding = remaining / expanders;
 
     for (auto& r : region.children)
     {
         r->rect = currentRect;
 
-        if (!region.vertical)
+        if (region.layoutType == RegionLayoutType::VBox)
         {
             if (r->flags & RegionFlags::Fixed)
             {
-                r->rect.bottomRightPx.y = currentRect.topLeftPx.y + r->fixed_size.y;
-                currentRect.topLeftPx.y += r->fixed_size.y;
+                r->rect.bottomRightPx.y = currentRect.topLeftPx.y + r->fixed_size;
+                currentRect.topLeftPx.y += r->fixed_size;
             }
             else
             {
@@ -40,12 +40,12 @@ void LayoutRegion(Region& region)
                 currentRect.topLeftPx.y += perExpanding;
             }
         }
-        else
+        else if (region.layoutType == RegionLayoutType::HBox)
         {
             if (r->flags & RegionFlags::Fixed)
             {
-                r->rect.bottomRightPx.x = currentRect.topLeftPx.x + r->fixed_size.x;
-                currentRect.topLeftPx.x += r->fixed_size.x;
+                r->rect.bottomRightPx.x = currentRect.topLeftPx.x + r->fixed_size;
+                currentRect.topLeftPx.x += r->fixed_size;
             }
             else
             {

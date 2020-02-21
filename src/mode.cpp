@@ -1847,7 +1847,7 @@ bool ZepMode::HandleExCommand(std::string strCommand)
             auto pMapBuffer = GetEditor().GetEmptyBuffer("Mappings");
             pMapBuffer->SetFlags(FileFlags::Locked | FileFlags::ReadOnly);
             pMapBuffer->SetText(str.str());
-            GetEditor().GetActiveTabWindow()->AddWindow(pMapBuffer, nullptr, false);
+            GetEditor().GetActiveTabWindow()->AddWindow(pMapBuffer, nullptr, RegionLayoutType::VBox);
         }
         else if (strCommand.find(":tabedit") == 0)
         {
@@ -1857,13 +1857,13 @@ bool ZepMode::HandleExCommand(std::string strCommand)
             {
                 if (strTok[1] == "%")
                 {
-                    pTab->AddWindow(&buffer, nullptr, true);
+                    pTab->AddWindow(&buffer, nullptr, RegionLayoutType::HBox);
                 }
                 else
                 {
                     auto fname = strTok[1];
                     auto pBuffer = GetEditor().GetFileBuffer(fname);
-                    pTab->AddWindow(pBuffer, nullptr, true);
+                    pTab->AddWindow(pBuffer, nullptr, RegionLayoutType::HBox);
                 }
             }
             GetEditor().SetCurrentTabWindow(pTab);
@@ -1888,18 +1888,18 @@ bool ZepMode::HandleExCommand(std::string strCommand)
             {
                 if (strTok[1] == "%")
                 {
-                    pTab->AddWindow(&GetEditor().GetActiveTabWindow()->GetActiveWindow()->GetBuffer(), pWindow, true);
+                    pTab->AddWindow(&GetEditor().GetActiveTabWindow()->GetActiveWindow()->GetBuffer(), pWindow, RegionLayoutType::HBox);
                 }
                 else
                 {
                     auto fname = strTok[1];
                     auto pBuffer = GetEditor().GetFileBuffer(fname);
-                    pTab->AddWindow(pBuffer, pWindow, true);
+                    pTab->AddWindow(pBuffer, pWindow, RegionLayoutType::HBox);
                 }
             }
             else
             {
-                pTab->AddWindow(&GetEditor().GetActiveTabWindow()->GetActiveWindow()->GetBuffer(), pWindow, true);
+                pTab->AddWindow(&GetEditor().GetActiveTabWindow()->GetActiveWindow()->GetBuffer(), pWindow, RegionLayoutType::HBox);
             }
         }
         else if (strCommand.find(":hsplit") == 0 || strCommand.find(":split") == 0)
@@ -1910,18 +1910,18 @@ bool ZepMode::HandleExCommand(std::string strCommand)
             {
                 if (strTok[1] == "%")
                 {
-                    pTab->AddWindow(&GetEditor().GetActiveTabWindow()->GetActiveWindow()->GetBuffer(), pWindow, false);
+                    pTab->AddWindow(&GetEditor().GetActiveTabWindow()->GetActiveWindow()->GetBuffer(), pWindow, RegionLayoutType::VBox);
                 }
                 else
                 {
                     auto fname = strTok[1];
                     auto pBuffer = GetEditor().GetFileBuffer(fname);
-                    pTab->AddWindow(pBuffer, pWindow, false);
+                    pTab->AddWindow(pBuffer, pWindow, RegionLayoutType::VBox);
                 }
             }
             else
             {
-                pTab->AddWindow(&GetEditor().GetActiveTabWindow()->GetActiveWindow()->GetBuffer(), pWindow, false);
+                pTab->AddWindow(&GetEditor().GetActiveTabWindow()->GetActiveWindow()->GetBuffer(), pWindow, RegionLayoutType::VBox);
             }
         }
         else if (strCommand.find(":e") == 0)

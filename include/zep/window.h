@@ -130,63 +130,61 @@ public:
 
     virtual void Notify(std::shared_ptr<ZepMessage> message) override;
 
-    void SetCursorType(CursorType currentMode);
-    void UpdateAirline();
-    void UpdateScrollers();
+    // Display
+    virtual void SetDisplayRegion(const NRectf& region);
+    virtual void Display();
+
+    // Cursor
+    virtual ByteIndex GetBufferCursor();
+    virtual void SetBufferCursor(ByteIndex location);
+    virtual void SetCursorType(CursorType currentMode);
+    virtual void MoveCursorY(int yDistance, LineLocation clampLocation = LineLocation::LineLastNonCR);
+    virtual NVec2i BufferToDisplay();
+
+    // Flags
+    virtual void SetWindowFlags(uint32_t windowFlags);
+    virtual uint32_t GetWindowFlags() const;
+    virtual void ToggleFlag(uint32_t flag);
+
+    virtual long GetMaxDisplayLines();
+    virtual long GetNumDisplayedLines();
+
+    virtual ZepBuffer& GetBuffer() const;
+    virtual void SetBuffer(ZepBuffer* pBuffer);
 
     ZepTabWindow& GetTabWindow() const;
 
-    void SetDisplayRegion(const NRectf& region);
-
-    void Display();
-    void DisplayCursor();
-
-    ByteIndex CPOffset(ByteIndex location, LineLocation clampLocation = LineLocation::LineLastNonCR) const;
-    void MoveCursorY(int yDistance, LineLocation clampLocation = LineLocation::LineLastNonCR);
-    void MoveToBufferLine(long line, LineLocation clampLocation = LineLocation::LineFirstGraphChar);
-
-    ByteIndex GetBufferCursor();
-    void SetBufferCursor(ByteIndex location);
-
-    // Flags
-    void SetWindowFlags(uint32_t windowFlags);
-    uint32_t GetWindowFlags() const;
-    void ToggleFlag(uint32_t flag);
-
-    long GetMaxDisplayLines();
-    long GetNumDisplayedLines();
-
-    ZepBuffer& GetBuffer() const;
-    void SetBuffer(ZepBuffer* pBuffer);
-
-    NVec2i BufferToDisplay();
-    NVec2i BufferToDisplay(const ByteIndex& location);
-
-    float ToWindowY(float pos) const;
-
-    bool IsActiveWindow() const;
-    NVec4f FilterActiveColor(const NVec4f& col, float atten = 1.0f);
-
-    void UpdateLayout(bool force = false);
-
+private:
     enum FitCriteria
     {
         X,
         Y
     };
-    bool RectFits(const NRectf& area, const NRectf& rect, FitCriteria criteria);
 
-private:
+    // Layout
+    bool RectFits(const NRectf& area, const NRectf& rect, FitCriteria criteria);
+    NVec4f FilterActiveColor(const NVec4f& col, float atten = 1.0f);
+
+    void UpdateLayout(bool force = false);
+    void UpdateAirline();
+    void UpdateScrollers();
     void UpdateLineSpans();
-    void ScrollToCursor();
     void EnsureCursorVisible();
     void UpdateVisibleLineRange();
+
+    NVec2i BufferToDisplay(const ByteIndex& location);
+
+    void ScrollToCursor();
     bool IsInsideTextRegion(NVec2i pos) const;
 
     void GetCharPointer(ByteIndex loc, const uint8_t*& pBegin, const uint8_t*& pEnd, bool& invalidChar);
     const SpanInfo& GetCursorLineInfo(long y);
 
+    float ToWindowY(float pos) const;
     float TipBoxShadowWidth() const;
+
+    // Display
+    void DisplayCursor();
     void DisplayToolTip(const NVec2f& pos, const RangeMarker& marker) const;
     bool DisplayLine(SpanInfo& lineInfo, int displayPass);
     void DisplayScrollers();
@@ -199,6 +197,8 @@ private:
 
     void DrawLineWidgets(SpanInfo& lineInfo);
     float GetLineTopMargin(long line);
+    
+    bool IsActiveWindow() const;
 
 private:
     NRectf m_displayRect;

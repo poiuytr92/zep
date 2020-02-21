@@ -86,7 +86,7 @@ ZepEditor::ZepEditor(ZepDisplay* pDisplay, const ZepPath& root, uint32_t flags, 
     RegisterSyntaxProviders(*this);
 
     m_editorRegion = std::make_shared<Region>();
-    m_editorRegion->vertical = false;
+    m_editorRegion->layoutType = RegionLayoutType::VBox;
 
     m_tabRegion = std::make_shared<Region>();
     m_tabContentRegion = std::make_shared<Region>();
@@ -337,7 +337,7 @@ ZepWindow* ZepEditor::AddRepl()
     auto pReplBuffer = GetEmptyBuffer("Repl.lisp", FileFlags::Locked);
     pReplBuffer->SetBufferType(BufferType::Repl);
 
-    auto pReplWindow = GetActiveTabWindow()->AddWindow(pReplBuffer, nullptr, false);
+    auto pReplWindow = GetActiveTabWindow()->AddWindow(pReplBuffer, nullptr, RegionLayoutType::VBox);
 
     auto pMode = std::make_shared<ZepMode_Repl>(*this, *pActiveWindow, *pReplWindow);
     pReplBuffer->SetMode(pMode);
@@ -355,7 +355,7 @@ ZepWindow* ZepEditor::AddOrca()
 ZepWindow* ZepEditor::AddTree()
 {
     auto pTree = GetEmptyBuffer("Tree.tree", FileFlags::Locked | FileFlags::ReadOnly);
-    auto pTreeWindow = GetActiveTabWindow()->AddWindow(pTree, nullptr, true);
+    auto pTreeWindow = GetActiveTabWindow()->AddWindow(pTree, nullptr, RegionLayoutType::HBox);
 
     auto pActiveWindow = GetActiveTabWindow()->GetActiveWindow();
     pActiveWindow->SetBuffer(pTree);
@@ -388,7 +388,7 @@ ZepWindow* ZepEditor::AddSearch()
     auto pActiveWindow = GetActiveTabWindow()->GetActiveWindow();
     auto searchPath = GetFileSystem().GetSearchRoot(pActiveWindow->GetBuffer().GetFilePath());
 
-    auto pSearchWindow = GetActiveTabWindow()->AddWindow(pSearchBuffer, nullptr, false);
+    auto pSearchWindow = GetActiveTabWindow()->AddWindow(pSearchBuffer, nullptr, RegionLayoutType::VBox);
     pSearchWindow->SetWindowFlags(pSearchWindow->GetWindowFlags() & WindowFlags::Modal);
     pSearchWindow->SetCursorType(CursorType::LineMarker);
 
@@ -438,7 +438,7 @@ ZepBuffer* ZepEditor::InitWithFileOrDir(const std::string& str)
     // Get a buffer for the start file
     auto pFileBuffer = GetFileBuffer(startPath);
     auto pTab = EnsureTab();
-    pTab->AddWindow(pFileBuffer, nullptr, false);
+    pTab->AddWindow(pFileBuffer, nullptr, RegionLayoutType::HBox);
 
     return pFileBuffer;
 }
@@ -450,7 +450,7 @@ ZepBuffer* ZepEditor::InitWithText(const std::string& strName, const std::string
     auto pBuffer = GetEmptyBuffer(strName);
     pBuffer->SetText(strText);
 
-    pTab->AddWindow(pBuffer, nullptr, false);
+    pTab->AddWindow(pBuffer, nullptr, RegionLayoutType::HBox);
 
     return pBuffer;
 }
@@ -570,7 +570,7 @@ ZepTabWindow* ZepEditor::AddTabWindow()
     m_pActiveTabWindow = pTabWindow;
 
     auto pEmpty = GetEmptyBuffer("[No Name]", FileFlags::DefaultBuffer);
-    pTabWindow->AddWindow(pEmpty, nullptr, false);
+    pTabWindow->AddWindow(pEmpty, nullptr, RegionLayoutType::HBox);
 
     return pTabWindow;
 }
@@ -943,18 +943,18 @@ void ZepEditor::UpdateSize()
     auto displaySize = m_editorRegion->rect.Size();
 
     // Regions
-    m_commandRegion->fixed_size = NVec2f(0.0f, commandSize);
+    m_commandRegion->fixed_size = commandSize;
     m_commandRegion->flags = RegionFlags::Fixed;
 
     // Add tabs for extra windows
     if (GetTabWindows().size() > 1)
     {
-        m_tabRegion->fixed_size = NVec2f(0.0f, m_pDisplay->GetFontHeightPixels() + textBorder * 2);
+        m_tabRegion->fixed_size = m_pDisplay->GetFontHeightPixels() + textBorder * 2;
         m_tabRegion->flags = RegionFlags::Fixed;
     }
     else
     {
-        m_tabRegion->fixed_size = NVec2f(0.0f, 0.0f);
+        m_tabRegion->fixed_size = 0.0f;
         m_tabRegion->flags = RegionFlags::Fixed;
     }
 

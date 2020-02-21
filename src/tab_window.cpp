@@ -16,9 +16,7 @@ ZepTabWindow::ZepTabWindow(ZepEditor& editor)
     , m_editor(editor)
 {
     m_spRootRegion = std::make_shared<Region>();
-    m_spRootRegion->ratio = 1.0f;
     m_spRootRegion->flags = RegionFlags::Expanding;
-    m_spRootRegion->pszName = "Root";
 }
 
 ZepTabWindow::~ZepTabWindow()
@@ -141,7 +139,7 @@ void ZepTabWindow::SetActiveWindow(ZepWindow* pBuffer)
 // Each region contains a list of either vertical or horizontally split regions.
 // Any region can have child regions of the same type.
 // If you split a window, you effectively create a stacked region within the parent region.
-ZepWindow* ZepTabWindow::AddWindow(ZepBuffer* pBuffer, ZepWindow* pParent, bool vsplit)
+ZepWindow* ZepTabWindow::AddWindow(ZepBuffer* pBuffer, ZepWindow* pParent, RegionLayoutType layoutType)
 {
     // If we are replacing a default/unmodified start buffer, then this new window will replace it
     // This makes for nice behavior where adding a top-level window to the tab will nuke the default buffer
@@ -162,7 +160,6 @@ ZepWindow* ZepTabWindow::AddWindow(ZepBuffer* pBuffer, ZepWindow* pParent, bool 
 
     // This new window is going to introduce a new region
     auto r = std::make_shared<Region>();
-    r->ratio = 1.0f;
     r->flags = RegionFlags::Expanding;
 
     SetActiveWindow(pWin);
@@ -176,9 +173,8 @@ ZepWindow* ZepTabWindow::AddWindow(ZepBuffer* pBuffer, ZepWindow* pParent, bool 
             // Make a new parent to hold the children at the root, and replace the root region 
             // with the new parent, putting the old root inside it!
             auto r1 = std::make_shared<Region>();
-            r1->ratio = 1.0f;
             r1->flags = RegionFlags::Expanding;
-            r1->vertical = vsplit;
+            r1->layoutType = layoutType;
             r1->children.push_back(m_spRootRegion);
             m_spRootRegion->pParent = r1;
             m_spRootRegion = r1;
@@ -188,7 +184,7 @@ ZepWindow* ZepTabWindow::AddWindow(ZepBuffer* pBuffer, ZepWindow* pParent, bool 
         {
             // The root region has 0 or 1 children, so just set its split type and add our child
             m_spRootRegion->children.push_back(r);
-            m_spRootRegion->vertical = vsplit;
+            m_spRootRegion->layoutType = layoutType;
         }
 
         // New region has root as the parent.
@@ -199,7 +195,7 @@ ZepWindow* ZepTabWindow::AddWindow(ZepBuffer* pBuffer, ZepWindow* pParent, bool 
     {
         // Get the parent region that holds the parent window!
         std::shared_ptr<Region> pParentRegion = m_windowRegions[pParent]->pParent;
-        if (pParentRegion->vertical == vsplit)
+        if (pParentRegion->layoutType == layoutType)
         {
             // Add our newly created region into the parent region, since it is splitting in the same way as the parent's children
             // Try to find the right spot, so we effectively split the correct parent
@@ -229,11 +225,10 @@ ZepWindow* ZepTabWindow::AddWindow(ZepBuffer* pBuffer, ZepWindow* pParent, bool 
             assert(pSplitRegion->children.empty());
 
             // Force the region to be of the new split type
-            pSplitRegion->vertical = vsplit;
+            pSplitRegion->layoutType = layoutType;
 
             // Make a new region and put the existing region in it
             auto r1 = std::make_shared<Region>();
-            r1->ratio = 1.0f;
             r1->flags = RegionFlags::Expanding;
             pSplitRegion->children.push_back(r1);
             r1->pParent = pSplitRegion;

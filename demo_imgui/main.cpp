@@ -507,11 +507,11 @@ int main(int argc, char** argv)
                 auto pTabWindow = zep.GetEditor().GetActiveTabWindow();
                 if (ImGui::MenuItem("Horizontal Split"))
                 {
-                    pTabWindow->AddWindow(&pTabWindow->GetActiveWindow()->GetBuffer(), pTabWindow->GetActiveWindow(), false);
+                    pTabWindow->AddWindow(&pTabWindow->GetActiveWindow()->GetBuffer(), pTabWindow->GetActiveWindow(), RegionLayoutType::VBox);
                 }
                 else if (ImGui::MenuItem("Vertical Split"))
                 {
-                    pTabWindow->AddWindow(&pTabWindow->GetActiveWindow()->GetBuffer(), pTabWindow->GetActiveWindow(), true);
+                    pTabWindow->AddWindow(&pTabWindow->GetActiveWindow()->GetBuffer(), pTabWindow->GetActiveWindow(), RegionLayoutType::HBox);
                 }
                 ImGui::EndMenu();
             }
