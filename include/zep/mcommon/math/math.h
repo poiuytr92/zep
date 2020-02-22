@@ -475,6 +475,44 @@ inline std::ostream& operator<< (std::ostream& str, const NRect<T>& region)
     return str;
 }
 
+enum FitCriteria
+{
+    X,
+    Y
+};
+
+template<class T>
+inline bool NRectFits(const NRect<T>& area, const NRect<T>& rect, FitCriteria criteria)
+{
+    if (criteria == FitCriteria::X)
+    {
+        auto xDiff = rect.bottomRightPx.x - area.bottomRightPx.x;
+        if (xDiff > 0)
+        {
+            return false;
+        }
+        xDiff = rect.topLeftPx.x - area.topLeftPx.x;
+        if (xDiff < 0)
+        {
+            return false;
+        }
+    }
+    else
+    {
+        auto yDiff = rect.bottomRightPx.y - area.bottomRightPx.y;
+        if (yDiff > 0)
+        {
+            return false;
+        }
+        yDiff = rect.topLeftPx.y - area.topLeftPx.y;
+        if (yDiff < 0)
+        {
+            return false;
+        }
+    }
+    return true;
+}
+
 using NRectf = NRect<float>;
 
 

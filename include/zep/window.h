@@ -87,7 +87,7 @@ enum
     ShowLineNumbers = (1 << 2),
     ShowIndicators = (1 << 3),
     Modal = (1 << 4),
-    WrapText = (1 << 5)
+    WrapText = (1 << 5) // Warning: this is not for general use yet. Has issues
 };
 }
 
@@ -156,14 +156,6 @@ public:
     ZepTabWindow& GetTabWindow() const;
 
 private:
-    enum FitCriteria
-    {
-        X,
-        Y
-    };
-
-    // Layout
-    bool RectFits(const NRectf& area, const NRectf& rect, FitCriteria criteria);
     NVec4f FilterActiveColor(const NVec4f& col, float atten = 1.0f);
 
     void UpdateLayout(bool force = false);

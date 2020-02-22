@@ -2042,6 +2042,8 @@ bool ZepMode::HandleExCommand(std::string strCommand)
         }
         else if (strCommand == ":ZWrapText")
         {
+            // Wrapping is not fully supported yet, but useful for the Orca optional mode.
+            // To enable wrapping fully, the editor needs to scroll in X as well as Y...
             pWindow->ToggleFlag(WindowFlags::WrapText);
         }
         else if (strCommand == ":ZShowIndicators")

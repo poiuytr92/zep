@@ -1136,37 +1136,6 @@ void ZepWindow::GetCursorInfo(NVec2f& pos, NVec2f& size)
     size.y = cursorBufferLine.textHeight;
 }
 
-bool ZepWindow::RectFits(const NRectf& area, const NRectf& rect, FitCriteria criteria)
-{
-    if (criteria == FitCriteria::X)
-    {
-        auto xDiff = rect.bottomRightPx.x - area.bottomRightPx.x;
-        if (xDiff > 0)
-        {
-            return false;
-        }
-        xDiff = rect.topLeftPx.x - area.topLeftPx.x;
-        if (xDiff < 0)
-        {
-            return false;
-        }
-    }
-    else
-    {
-        auto yDiff = rect.bottomRightPx.y - area.bottomRightPx.y;
-        if (yDiff > 0)
-        {
-            return false;
-        }
-        yDiff = rect.topLeftPx.y - area.topLeftPx.y;
-        if (yDiff < 0)
-        {
-            return false;
-        }
-    }
-    return true;
-}
-
 void ZepWindow::PlaceToolTip(const NVec2f& pos, ToolTipPos location, uint32_t lineGap, const std::shared_ptr<RangeMarker> spMarker)
 {
     auto textSize = GetEditor().GetDisplay().GetTextSize((const uint8_t*)spMarker->description.c_str(), (const uint8_t*)(spMarker->description.c_str() + spMarker->description.size()));
@@ -1195,7 +1164,7 @@ void ZepWindow::PlaceToolTip(const NVec2f& pos, ToolTipPos location, uint32_t li
         };
 
         genBox();
-        if (!RectFits(m_textRegion->rect, tipBox, FitCriteria::X))
+        if (!NRectFits(m_textRegion->rect, tipBox, FitCriteria::X))
         {
             // If it is above or below, slide it to the left to fit
             if (location != ToolTipPos::RightLine)
@@ -1207,7 +1176,7 @@ void ZepWindow::PlaceToolTip(const NVec2f& pos, ToolTipPos location, uint32_t li
         }
 
         // Swap above below
-        if (!RectFits(m_textRegion->rect, tipBox, FitCriteria::Y))
+        if (!NRectFits(m_textRegion->rect, tipBox, FitCriteria::Y))
         {
             switch (location)
             {
