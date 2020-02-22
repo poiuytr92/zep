@@ -242,8 +242,7 @@ private:
     // Setup of displayed lines
     std::vector<SpanInfo*> m_windowLines;   // Information about the currently displayed lines
     float m_bufferOffsetYPx = 0.0f;
-    float m_bufferSizeYPx = 0.0f;
-    float m_bufferSizeXPx = 0.0f;
+    NVec2f m_bufferSizePx;
     NVec2i m_visibleLineRange = {0, 0};     // Offset of the displayed area into the text
     long m_maxDisplayLines = 0;
     float m_defaultLineSize = 0;

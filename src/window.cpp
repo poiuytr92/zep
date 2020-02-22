@@ -93,7 +93,7 @@ void ZepWindow::UpdateScrollers()
         return;
     }
     m_vScroller->vScrollVisiblePercent = std::min(float(m_maxDisplayLines) / float(m_windowLines.size()), 1.0f);
-    m_vScroller->vScrollPosition = std::abs(m_bufferOffsetYPx) / m_bufferSizeYPx;
+    m_vScroller->vScrollPosition = std::abs(m_bufferOffsetYPx) / m_bufferSizePx.y;
     m_vScroller->vScrollLinePercent = 1.0f / m_windowLines.size();
     m_vScroller->vScrollPagePercent = m_vScroller->vScrollVisiblePercent;
 
@@ -273,7 +273,7 @@ void ZepWindow::ScrollToCursor()
         m_bufferOffsetYPx += cursorLine.spanYPx - (m_bufferOffsetYPx + m_textRegion->rect.Height() - two_lines);
     }
 
-    m_bufferOffsetYPx = std::min(m_bufferOffsetYPx, m_bufferSizeYPx - float(m_maxDisplayLines) * (two_lines * .5f));
+    m_bufferOffsetYPx = std::min(m_bufferOffsetYPx, m_bufferSizePx.y - float(m_maxDisplayLines) * (two_lines * .5f));
     m_bufferOffsetYPx = std::max(0.f, m_bufferOffsetYPx);
 
     if (old_offset != m_bufferOffsetYPx)
@@ -346,7 +346,7 @@ void ZepWindow::UpdateLineSpans()
 
     m_maxDisplayLines = (long)std::max(0.0f, std::floor(m_textRegion->rect.Height() / m_defaultLineSize));
     float screenPosX = m_textRegion->rect.topLeftPx.x;
-    m_bufferSizeXPx = 0.0f;
+    m_bufferSizePx.x = 0.0f;
 
     const auto& textBuffer = m_pBuffer->GetText();
 
@@ -425,7 +425,7 @@ void ZepWindow::UpdateLineSpans()
                     lineInfo->spanYPx = bufferPosYPx;
                     lineInfo->margins = margins;
                     lineInfo->textHeight = textHeight;
-                    m_bufferSizeXPx = std::max(m_bufferSizeXPx, screenPosX);
+                    m_bufferSizePx.x = std::max(m_bufferSizePx.x, screenPosX);
                     screenPosX = m_textRegion->rect.topLeftPx.x;
                     lineInfo->pixelRenderRange.x = screenPosX;
                 }
@@ -447,7 +447,7 @@ void ZepWindow::UpdateLineSpans()
         // Next time round - down a buffer line, down a span line
         bufferLine++;
         spanLine++;
-        m_bufferSizeXPx = std::max(m_bufferSizeXPx, screenPosX);
+        m_bufferSizePx.x = std::max(m_bufferSizePx.x, screenPosX);
         screenPosX = m_textRegion->rect.topLeftPx.x;
         bufferPosYPx += fullLineHeight;
     }
@@ -488,8 +488,8 @@ void ZepWindow::UpdateLineSpans()
         }
     }
 
-    m_bufferSizeYPx = m_windowLines[m_windowLines.size() - 1]->spanYPx + textHeight + DPI_Y(GetEditor().GetConfig().lineMargins.y);
-    m_bufferSizeXPx -= m_displayRect.Left();
+    m_bufferSizePx.y = m_windowLines[m_windowLines.size() - 1]->spanYPx + textHeight + DPI_Y(GetEditor().GetConfig().lineMargins.y);
+    m_bufferSizePx.x -= m_displayRect.Left();
 
     UpdateVisibleLineRange();
     m_layoutDirty = true;

@@ -388,7 +388,7 @@ int main(int argc, char** argv)
     cfg.OversampleH = 3;
     cfg.OversampleV = 3;
 
-    io.Fonts->AddFontFromFileTTF((std::string(SDL_GetBasePath()) + "Roboto-Medium.ttf").c_str(), 16 * GetDisplayScale(), &cfg, ranges.Data);
+    io.Fonts->AddFontFromFileTTF((std::string(SDL_GetBasePath()) + "Cousine-Regular.ttf").c_str(), 16 * GetDisplayScale(), &cfg, ranges.Data);
 
     unsigned int flags = 0; // ImGuiFreeType::NoHinting;
     ImGuiFreeType::BuildFontAtlas(io.Fonts, flags);
