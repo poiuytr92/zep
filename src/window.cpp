@@ -73,6 +73,8 @@ ZepWindow::ZepWindow(ZepTabWindow& window, ZepBuffer* buffer)
     m_vScroller = std::make_shared<Scroller>(GetEditor(), *m_vScrollRegion);
     m_vScroller->vertical = false;
 
+    //m_editRegion->margin = NVec4f(50, 50, 50, 50);
+
     timer_start(m_toolTipTimer);
 }
 
@@ -97,7 +99,7 @@ void ZepWindow::UpdateScrollers()
     m_vScroller->vScrollLinePercent = 1.0f / m_windowLines.size();
     m_vScroller->vScrollPagePercent = m_vScroller->vScrollVisiblePercent;
 
-    if (GetEditor().GetConfig().showScrollBar == 0)
+    if (GetEditor().GetConfig().showScrollBar == 0 || ZTestFlags(m_windowFlags, WindowFlags::HideScrollBar))
     {
         m_vScrollRegion->fixed_size = 0.0f;
     }
@@ -1231,6 +1233,13 @@ void ZepWindow::Display()
     {
         // Fill the background color for the whole area, only in normal mode.
         display.DrawRectFilled(m_textRegion->rect, GetBlendedColor(ThemeColor::Background));
+
+    }
+
+    if (ZTestFlags(m_windowFlags, WindowFlags::GridStyle))
+    {
+        // Border around the edge
+        display.DrawRect(m_textRegion->rect, GetBlendedColor(ThemeColor::TabInactive));
     }
 
     if (m_numberRegion->rect.Width() > 0)
@@ -1246,7 +1255,8 @@ void ZepWindow::Display()
     DisplayScrollers();
 
     // This is a line down the middle of a split
-    if (GetEditor().GetConfig().style == EditorStyle::Normal)
+    if (GetEditor().GetConfig().style == EditorStyle::Normal &&
+        !ZTestFlags(m_windowFlags, WindowFlags::HideSplitMark))
     {
         display.DrawRectFilled(
             NRectf(NVec2f(m_numberRegion->rect.topLeftPx.x, m_numberRegion->rect.topLeftPx.y), NVec2f(m_numberRegion->rect.topLeftPx.x + 1, m_numberRegion->rect.bottomRightPx.y)), GetBlendedColor(ThemeColor::TabInactive));

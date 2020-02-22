@@ -348,7 +348,18 @@ ZepWindow* ZepEditor::AddRepl()
 ZepWindow* ZepEditor::AddOrca()
 {
     auto pOrcaBuffer = GetEmptyBuffer("Orca.orca");
-    GetActiveTabWindow()->GetActiveWindow()->SetBuffer(pOrcaBuffer);
+    auto pWindow = GetActiveTabWindow()->GetActiveWindow();
+    pWindow->SetBuffer(pOrcaBuffer);
+
+    auto flags = pWindow->GetWindowFlags();
+    ZClearFlags(flags, WindowFlags::WrapText);
+    ZClearFlags(flags, WindowFlags::ShowLineNumbers);
+    ZClearFlags(flags, WindowFlags::ShowIndicators);
+    ZSetFlags(flags, WindowFlags::GridStyle);
+    ZSetFlags(flags, WindowFlags::HideScrollBar);
+    ZSetFlags(flags, WindowFlags::HideSplitMark);
+    pWindow->SetWindowFlags(flags);
+
     return GetActiveTabWindow()->GetActiveWindow();
 }
 

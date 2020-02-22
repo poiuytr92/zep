@@ -85,8 +85,11 @@ enum
     ShowCR = (1 << 1),
     ShowLineNumbers = (1 << 2),
     ShowIndicators = (1 << 3),
-    Modal = (1 << 4),
-    WrapText = (1 << 5) // Warning: this is not for general use yet. Has issues
+    HideScrollBar = (1 << 4),
+    Modal = (1 << 5),
+    WrapText = (1 << 6), // Warning: this is not for general use yet. Has issues
+    HideSplitMark = (1 << 7),
+    GridStyle = (1 << 8)
 };
 }
 

@@ -73,7 +73,7 @@ public:
             pEnd = pBegin + strlen((const char*)pBegin);
         }
 
-        auto rc = met.size(Qt::TextSingleLine, QString::fromUtf8((char*)pBegin, pEnd - pBegin));
+        auto rc = met.size(Qt::TextSingleLine | Qt::TextIncludeTrailingSpaces | Qt::TextLongestVariant, QString::fromUtf8((char*)pBegin, pEnd - pBegin));
         return NVec2f(rc.width(), rc.height());
     }
 

@@ -72,5 +72,13 @@ NVec2f ZepDisplay::GetCharSize(const uint8_t* pCh)
 
     return sz;
 }
+    
+void ZepDisplay::DrawRect(const NRectf& rc, const NVec4f& col) const
+{
+    DrawLine(rc.topLeftPx, rc.BottomLeft(), col);
+    DrawLine(rc.topLeftPx, rc.TopRight(), col);
+    DrawLine(rc.TopRight(), rc.bottomRightPx, col);
+    DrawLine(rc.BottomLeft(), rc.bottomRightPx, col);
+}
 
 }
