@@ -27,17 +27,16 @@ struct SpanInfo
 {
     BufferByteRange lineByteRange;                 // Begin/end range of the text buffer for this line, as always end is one beyond the end.
     std::vector<LineCharInfo> lineCodePoints;      // Codepoints
-    long lastNonCROffset = InvalidByteIndex;       // The last char that is visible on the line (i.e. not CR/LF)
     long bufferLineNumber = 0;                     // Line in the original buffer, not the screen line
     float spanYPx = 0.0f;                          // Position in the buffer in pixels, if the screen was as big as the buffer.
     float textHeight = 0.0f;                       // Height of the text region in the line
-    int lineIndex = 0;
-    NVec2f pixelRenderRange;                       // The x limits of where this line was last renderered
-    NVec2f margins = NVec2f(1.0f, 1.0f);           // Margin above and below the line
+    int spanLineIndex = 0;                         // The index of this line in spans; might be more than buffer index
+    NVec2f pixelRenderRange;                       // The x limits of where this line is renderered
+    NVec2f padding = NVec2f(1.0f, 1.0f);           // Padding above and below the line
 
     float FullLineHeightPx() const
     {
-        return margins.x + margins.y + textHeight;
+        return padding.x + padding.y + textHeight;
     }
 
     // The byte length, not code point length
@@ -189,7 +188,7 @@ private:
     void PlaceToolTip(const NVec2f& pos, ToolTipPos location, uint32_t lineGap, const std::shared_ptr<RangeMarker> spMarker);
 
     void DrawLineWidgets(SpanInfo& lineInfo);
-    float GetLineTopMargin(long line);
+    float GetLineTopPadding(long line);
     
     bool IsActiveWindow() const;
 
