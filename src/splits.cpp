@@ -7,23 +7,25 @@ void LayoutRegion(Region& region)
 {
     float totalFixedSize = 0.0f;
     float expanders = 0.0f;
+    float padding = 0.0f;
     for (auto& r : region.children)
     {
         if (r->flags & RegionFlags::Fixed)
         {
             // This region needs its size plus margin
-            totalFixedSize += (r->fixed_size + (r->padding.x + r->padding.y));
+            totalFixedSize += r->fixed_size;
         }
         else
         {
             expanders += 1.0f;
         }
+        padding += r->padding.x + r->padding.y;
     }
 
     NRectf currentRect = region.rect;
     currentRect.Adjust(region.margin.x, region.margin.y, -region.margin.z, -region.margin.w);
 
-    auto remaining = ((region.layoutType == RegionLayoutType::HBox) ? currentRect.Width() : currentRect.Height()) - totalFixedSize;
+    auto remaining = ((region.layoutType == RegionLayoutType::HBox) ? currentRect.Width() : currentRect.Height()) - (totalFixedSize + padding);
     auto perExpanding = remaining / expanders;
 
     perExpanding = std::max(0.0f, perExpanding);

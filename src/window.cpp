@@ -56,7 +56,6 @@ ZepWindow::ZepWindow(ZepTabWindow& window, ZepBuffer* buffer)
 
     // Leave a gap before/after text for the line numbers
     // so they aren't quite so close
-    m_textRegion->padding = NVec2f(DPI_X(8), 0);
 
     m_editRegion = std::make_shared<Region>();
     m_editRegion->flags = RegionFlags::Expanding;
@@ -68,12 +67,17 @@ ZepWindow::ZepWindow(ZepTabWindow& window, ZepBuffer* buffer)
     m_editRegion->children.push_back(m_textRegion);
     m_editRegion->children.push_back(m_vScrollRegion);
 
+    m_numberRegion->padding = NVec2f(DPI_X(4), DPI_X(4));
+    m_indicatorRegion->padding = NVec2f(DPI_X(4), DPI_X(4));
+    m_textRegion->padding = NVec2f(DPI_X(4), DPI_X(4));
+    m_vScrollRegion->padding = NVec2f(DPI_X(4), DPI_X(4));
+
     m_bufferRegion->children.push_back(m_airlineRegion);
 
     m_vScroller = std::make_shared<Scroller>(GetEditor(), *m_vScrollRegion);
     m_vScroller->vertical = false;
 
-    //m_editRegion->margin = NVec4f(50, 50, 50, 50);
+    m_editRegion->margin = NVec4f(50, 50, 50, 50);
 
     timer_start(m_toolTipTimer);
 }
