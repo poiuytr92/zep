@@ -86,7 +86,8 @@ enum
     ShowCR = (1 << 1),
     ShowLineNumbers = (1 << 2),
     ShowIndicators = (1 << 3),
-    Modal = (1 << 4)
+    Modal = (1 << 4),
+    WrapText = (1 << 5)
 };
 }
 
@@ -224,11 +225,10 @@ private:
     // This will indeed stop lines wrapping though!  You just can't move to the far right and have
     // the text scroll; which isn't a big deal, but a work item.
     // TODO Use flags instead
-    bool m_wrap = true;     
     bool m_layoutDirty = true;
     bool m_scrollVisibilityChanged = true;
     bool m_cursorMoved = true;
-    uint32_t m_windowFlags = WindowFlags::ShowWhiteSpace | WindowFlags::ShowIndicators | WindowFlags::ShowLineNumbers;
+    uint32_t m_windowFlags = WindowFlags::ShowWhiteSpace | WindowFlags::ShowIndicators | WindowFlags::ShowLineNumbers | WindowFlags::WrapText;
 
     // Cursor
     CursorType m_cursorType = CursorType::Normal;   // Type of cursor
@@ -241,8 +241,8 @@ private:
 
     // Setup of displayed lines
     std::vector<SpanInfo*> m_windowLines;   // Information about the currently displayed lines
-    float m_bufferOffsetYPx = 0.0f;
-    NVec2f m_bufferSizePx;
+    float m_bufferOffsetYPx = 0.0f;         // The Scroll position within the text
+    float m_textSizeYPx;                  // The calculated size of the buffer text
     NVec2i m_visibleLineRange = {0, 0};     // Offset of the displayed area into the text
     long m_maxDisplayLines = 0;
     float m_defaultLineSize = 0;

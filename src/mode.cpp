@@ -2040,6 +2040,10 @@ bool ZepMode::HandleExCommand(std::string strCommand)
         {
             pWindow->ToggleFlag(WindowFlags::ShowLineNumbers);
         }
+        else if (strCommand == ":ZWrapText")
+        {
+            pWindow->ToggleFlag(WindowFlags::WrapText);
+        }
         else if (strCommand == ":ZShowIndicators")
         {
             pWindow->ToggleFlag(WindowFlags::ShowIndicators);

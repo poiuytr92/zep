@@ -93,7 +93,7 @@ void ZepWindow::UpdateScrollers()
         return;
     }
     m_vScroller->vScrollVisiblePercent = std::min(float(m_maxDisplayLines) / float(m_windowLines.size()), 1.0f);
-    m_vScroller->vScrollPosition = std::abs(m_bufferOffsetYPx) / m_bufferSizePx.y;
+    m_vScroller->vScrollPosition = std::abs(m_bufferOffsetYPx) / m_textSizeYPx;
     m_vScroller->vScrollLinePercent = 1.0f / m_windowLines.size();
     m_vScroller->vScrollPagePercent = m_vScroller->vScrollVisiblePercent;
 
@@ -273,7 +273,7 @@ void ZepWindow::ScrollToCursor()
         m_bufferOffsetYPx += cursorLine.spanYPx - (m_bufferOffsetYPx + m_textRegion->rect.Height() - two_lines);
     }
 
-    m_bufferOffsetYPx = std::min(m_bufferOffsetYPx, m_bufferSizePx.y - float(m_maxDisplayLines) * (two_lines * .5f));
+    m_bufferOffsetYPx = std::min(m_bufferOffsetYPx, m_textSizeYPx - float(m_maxDisplayLines) * (two_lines * .5f));
     m_bufferOffsetYPx = std::max(0.f, m_bufferOffsetYPx);
 
     if (old_offset != m_bufferOffsetYPx)
@@ -346,7 +346,6 @@ void ZepWindow::UpdateLineSpans()
 
     m_maxDisplayLines = (long)std::max(0.0f, std::floor(m_textRegion->rect.Height() / m_defaultLineSize));
     float screenPosX = m_textRegion->rect.topLeftPx.x;
-    m_bufferSizePx.x = 0.0f;
 
     const auto& textBuffer = m_pBuffer->GetText();
 
@@ -397,7 +396,7 @@ void ZepWindow::UpdateLineSpans()
             const auto textSize = display.GetCharSize(pCh);
 
             // Wrap if we have displayed at least one char, and we have to
-            if (m_wrap && ch != lineByteRange.first)
+            if (ZTestFlags(m_windowFlags, WindowFlags::WrapText) && ch != lineByteRange.first)
             {
                 // At least a single char has wrapped; close the old line, start a new one
                 if (((screenPosX + textSize.x) + textSize.x) >= (m_textRegion->rect.bottomRightPx.x))
@@ -425,7 +424,6 @@ void ZepWindow::UpdateLineSpans()
                     lineInfo->spanYPx = bufferPosYPx;
                     lineInfo->margins = margins;
                     lineInfo->textHeight = textHeight;
-                    m_bufferSizePx.x = std::max(m_bufferSizePx.x, screenPosX);
                     screenPosX = m_textRegion->rect.topLeftPx.x;
                     lineInfo->pixelRenderRange.x = screenPosX;
                 }
@@ -447,7 +445,6 @@ void ZepWindow::UpdateLineSpans()
         // Next time round - down a buffer line, down a span line
         bufferLine++;
         spanLine++;
-        m_bufferSizePx.x = std::max(m_bufferSizePx.x, screenPosX);
         screenPosX = m_textRegion->rect.topLeftPx.x;
         bufferPosYPx += fullLineHeight;
     }
@@ -488,8 +485,7 @@ void ZepWindow::UpdateLineSpans()
         }
     }
 
-    m_bufferSizePx.y = m_windowLines[m_windowLines.size() - 1]->spanYPx + textHeight + DPI_Y(GetEditor().GetConfig().lineMargins.y);
-    m_bufferSizePx.x -= m_displayRect.Left();
+    m_textSizeYPx = m_windowLines[m_windowLines.size() - 1]->spanYPx + textHeight + DPI_Y(GetEditor().GetConfig().lineMargins.y);
 
     UpdateVisibleLineRange();
     m_layoutDirty = true;
@@ -969,17 +965,11 @@ ZepTabWindow& ZepWindow::GetTabWindow() const
 
 void ZepWindow::SetWindowFlags(uint32_t windowFlags)
 {
-    auto old = m_windowFlags;
-    m_windowFlags = windowFlags;
-
-    // Redo layout
-    if (ZTestFlags(m_windowFlags, WindowFlags::ShowLineNumbers) != ZTestFlags(old, WindowFlags::ShowLineNumbers))
+    if (windowFlags != m_windowFlags)
     {
-        UpdateLayout(true);
-    }
+        m_windowFlags = windowFlags;
 
-    if (ZTestFlags(m_windowFlags, WindowFlags::ShowIndicators) != ZTestFlags(old, WindowFlags::ShowIndicators))
-    {
+        // Most changes require layout update; do it anyway
         UpdateLayout(true);
     }
 }
@@ -1043,7 +1033,6 @@ void ZepWindow::SetBuffer(ZepBuffer* pBuffer)
     m_bufferCursor = pBuffer->Clamp(pBuffer->GetLastEditLocation());
     m_lastCursorColumn = 0;
     m_cursorMoved = false;
-
 }
 
 ByteIndex ZepWindow::GetBufferCursor()
@@ -1457,8 +1446,7 @@ void ZepWindow::MoveCursorY(int yDistance, LineLocation clampLocation)
     case LineLocation::LineLastNonCR: {
         // Don't skip back if we are right at the start of the line
         // (i.e. an empty line)
-        if (target.x != 0 &&
-            (cursorItr.Char() == '\n' || cursorItr.Char() == 0))
+        if (target.x != 0 && (cursorItr.Char() == '\n' || cursorItr.Char() == 0))
         {
             cursorItr.MoveClamped(-1, LineLocation::LineLastNonCR);
         }
