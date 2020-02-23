@@ -188,7 +188,11 @@ public:
     virtual void UpdateVisualSelection();
 
     const KeyMap& GetKeyMappings(EditorMode mode) const;
-    void AddStandardKeyMaps();
+
+    void AddGlobalKeyMaps();
+    void AddNavigationKeyMaps(bool allowInVisualMode = true);
+    void AddSearchKeyMaps();
+    void AddKeyMapWithCountRegisters(const std::vector<KeyMap*>& maps, const std::vector<std::string>& commands, const StringId& id);
 
 protected:
     virtual void SwitchMode(EditorMode currentMode);

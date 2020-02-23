@@ -1,12 +1,12 @@
 #pragma once
 
-#include "zep/mode.h"
+#include "zep/mode_vim.h"
 #include "zep/keymap.h"
 
 namespace Zep
 {
 
-class ZepMode_Orca : public ZepMode
+class ZepMode_Orca : public ZepMode_Vim
 {
 public:
     ZepMode_Orca(ZepEditor& editor);
@@ -22,7 +22,7 @@ public:
     virtual const char* Name() const override { return StaticName(); }
     virtual void PreDisplay(ZepWindow& win) override;
 
-    virtual void Init();
+    virtual void SetupKeyMaps() override;
 };
 
 } // namespace Zep

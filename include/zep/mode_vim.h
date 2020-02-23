@@ -33,10 +33,14 @@ public:
     virtual void Begin() override;
     virtual const char* Name() const override { return StaticName(); }
     virtual void PreDisplay(ZepWindow& win) override;
+    virtual void SetupKeyMaps();
+    virtual void AddOverStrikeMaps();
+    virtual void AddCopyMaps();
+    virtual void AddPasteMaps();
 
 private:
-    void HandleInsert(uint32_t key);
     void Init();
+    void HandleInsert(uint32_t key);
 
     timer m_insertEscapeTimer;
 };

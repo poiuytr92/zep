@@ -11,6 +11,7 @@
 #include "zep/tab_window.h"
 #include "zep/theme.h"
 #include "zep/window.h"
+#include "config_app.h"
 
 #include "zep/mcommon/animation/timer.h"
 #include "zep/mcommon/file/cpptoml.h"
@@ -350,7 +351,7 @@ ZepWindow* ZepEditor::AddRepl()
 
 ZepWindow* ZepEditor::AddOrca()
 {
-    auto pOrcaBuffer = GetFileBuffer("d:/dev/zep/tests/popcorn.orca");
+    auto pOrcaBuffer = GetFileBuffer(ZepPath(ZEP_ROOT) / "tests/two_by_two.orca");
     auto pWindow = GetActiveTabWindow()->GetActiveWindow();
     pWindow->SetBuffer(pOrcaBuffer);
 

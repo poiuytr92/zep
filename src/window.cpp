@@ -67,10 +67,8 @@ ZepWindow::ZepWindow(ZepTabWindow& window, ZepBuffer* buffer)
     m_editRegion->children.push_back(m_textRegion);
     m_editRegion->children.push_back(m_vScrollRegion);
 
-    m_numberRegion->padding = NVec2f(DPI_X(4), DPI_X(4));
-    m_indicatorRegion->padding = NVec2f(DPI_X(4), DPI_X(4));
-    m_textRegion->padding = NVec2f(DPI_X(4), DPI_X(4));
-    m_vScrollRegion->padding = NVec2f(DPI_X(4), DPI_X(4));
+    // A little daylight between the indicators
+    m_textRegion->padding = NVec2f(DPI_X(40), 0);
 
     m_bufferRegion->children.push_back(m_airlineRegion);
 
@@ -349,13 +347,13 @@ void ZepWindow::UpdateLineSpans()
     TIME_SCOPE(UpdateLineSpans);
 
     m_maxDisplayLines = (long)std::max(0.0f, std::floor(m_textRegion->rect.Height() / m_defaultLineSize));
-    float screenPosX = m_textRegion->rect.topLeftPx.x;
 
     const auto& textBuffer = m_pBuffer->GetText();
 
     long bufferLine = 0;
     long spanLine = 0;
     float bufferPosYPx = 0.0f;
+    float screenPosX = 0.0f;
 
     // Nuke the existing spans
     // In future we can in-place modify for speed
@@ -399,12 +397,11 @@ void ZepWindow::UpdateLineSpans()
         {
             const uint8_t* pCh = &textBuffer[ch];
             const auto textSize = display.GetCharSize(pCh);
-
             // Wrap if we have displayed at least one char, and we have to
             if (ZTestFlags(m_windowFlags, WindowFlags::WrapText) && ch != lineByteRange.first)
             {
                 // At least a single char has wrapped; close the old line, start a new one
-                if (((screenPosX + textSize.x) + textSize.x) >= (m_textRegion->rect.bottomRightPx.x))
+                if (((screenPosX + textSize.x) + textSize.x) >= (m_textRegion->rect.Width()))
                 {
                     // Remember the offset beyond the end of the line
                     lineInfo->lineByteRange.second = ch;
@@ -428,7 +425,8 @@ void ZepWindow::UpdateLineSpans()
                     lineInfo->spanYPx = bufferPosYPx;
                     lineInfo->padding = padding;
                     lineInfo->textHeight = textHeight;
-                    screenPosX = m_textRegion->rect.topLeftPx.x;
+                    
+                    screenPosX = 0.0f;
                     lineInfo->pixelRenderRange.x = screenPosX;
                     lineInfo->pixelRenderRange.y = screenPosX;
                 }
@@ -442,6 +440,11 @@ void ZepWindow::UpdateLineSpans()
                 screenPosX += textSize.x;
             }
 
+            if (*pCh == '\n' && !ZTestFlags(m_windowFlags,WindowFlags::ShowCR))
+            {
+                screenPosX -= textSize.x;
+            }
+
             lineInfo->spanYPx = bufferPosYPx;
             lineInfo->lineByteRange.second = ch + utf8_codepoint_length(textBuffer[ch]);
             lineInfo->pixelRenderRange.y = std::max(lineInfo->pixelRenderRange.y, screenPosX);
@@ -453,7 +456,7 @@ void ZepWindow::UpdateLineSpans()
         // Next time round - down a buffer line, down a span line
         bufferLine++;
         spanLine++;
-        screenPosX = m_textRegion->rect.topLeftPx.x;
+        screenPosX = 0.0f;
         bufferPosYPx += fullLineHeight;
     }
 
@@ -756,7 +759,7 @@ bool ZepWindow::DisplayLine(SpanInfo& lineInfo, int displayPass)
         }
     }
 
-    auto screenPosX = m_textRegion->rect.topLeftPx.x;
+    auto screenPosX = m_textRegion->rect.Left();
     auto pSyntax = m_pBuffer->GetSyntax();
 
     auto tipTimeSeconds = timer_get_elapsed_seconds(m_toolTipTimer);
@@ -1112,12 +1115,23 @@ void ZepWindow::UpdateLayout(bool force)
 
         UpdateLineSpans();
 
-        auto widthMargin = (m_textRegion->rect.Width() - m_textSizePx.x + m_textRegion->padding.x + m_textRegion->padding.y) / 2;
-        auto heightMargin = (m_textRegion->rect.Height() - m_textSizePx.y) / 2;
-        widthMargin = std::max(widthMargin, 0.0f);
-        heightMargin = std::max(heightMargin, 0.0f);
-        m_editRegion->margin = NVec4f(widthMargin, heightMargin, widthMargin, heightMargin);
-        LayoutRegion(*m_editRegion);
+        // In grid style, draw a central window
+        if (ZTestFlags(m_windowFlags, WindowFlags::GridStyle))
+        {
+            //LOG(DEBUG) << "Region: \n" << *m_bufferRegion;
+
+            // Put it in the center of the text region
+            auto widthMarginX = (m_textRegion->rect.Width() - m_textSizePx.x /*- m_textRegion->padding.x*/) / 2;
+            auto widthMarginY = (m_textRegion->rect.Width() - m_textSizePx.x /*- m_textRegion->padding.y*/) / 2;
+            auto heightMargin = (m_textRegion->rect.Height() - m_textSizePx.y) / 2;
+            widthMarginX = std::max(widthMarginX, 0.0f);
+            widthMarginY = std::max(widthMarginY, 0.0f);
+            heightMargin = std::max(heightMargin, 0.0f);
+            m_editRegion->margin = NVec4f(widthMarginX, heightMargin, widthMarginY, heightMargin);
+            LayoutRegion(*m_editRegion);
+            
+            //LOG(DEBUG) << "Region: \n" << m_bufferRegion;
+        }
         
         m_layoutDirty = false;
     }
