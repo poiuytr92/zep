@@ -445,6 +445,11 @@ void ZepWindow::UpdateLineSpans()
                 screenPosX -= textSize.x;
             }
 
+            if (*pCh == 0)
+            {
+                screenPosX -= textSize.x;
+            }
+
             lineInfo->spanYPx = bufferPosYPx;
             lineInfo->lineByteRange.second = ch + utf8_codepoint_length(textBuffer[ch]);
             lineInfo->pixelRenderRange.y = std::max(lineInfo->pixelRenderRange.y, screenPosX);
