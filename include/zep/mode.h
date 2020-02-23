@@ -167,8 +167,8 @@ public:
     virtual EditorMode GetEditorMode() const;
     virtual void SetEditorMode(EditorMode currentMode);
 
-    // ZepComponent
-    virtual void PreDisplay(){};
+    // About to display this window, which is associated with this mode
+    virtual void PreDisplay(ZepWindow&){};
 
     // Called when we begin editing in this mode
 
@@ -188,6 +188,7 @@ public:
     virtual void UpdateVisualSelection();
 
     const KeyMap& GetKeyMappings(EditorMode mode) const;
+    void AddStandardKeyMaps();
 
 protected:
     virtual void SwitchMode(EditorMode currentMode);

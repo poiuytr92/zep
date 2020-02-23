@@ -236,7 +236,7 @@ private:
     // Setup of displayed lines
     std::vector<SpanInfo*> m_windowLines;   // Information about the currently displayed lines
     float m_bufferOffsetYPx = 0.0f;         // The Scroll position within the text
-    float m_textSizeYPx;                  // The calculated size of the buffer text
+    NVec2f m_textSizePx;                    // The calculated size of the buffer text
     NVec2i m_visibleLineRange = {0, 0};     // Offset of the displayed area into the text
     long m_maxDisplayLines = 0;
     float m_defaultLineSize = 0;

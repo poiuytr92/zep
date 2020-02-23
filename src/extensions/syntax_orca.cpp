@@ -1,9 +1,10 @@
-#include "zep/syntax_orca.h"
 #include "zep/editor.h"
 #include "zep/theme.h"
 
 #include "zep/mcommon/logger.h"
 #include "zep/mcommon/string/stringutils.h"
+
+#include "zep/extensions/syntax_orca.h"
 
 #include <string>
 #include <vector>

@@ -1,4 +1,3 @@
-#include "zep/mode_repl.h"
 #include "zep/filesystem.h"
 #include "zep/tab_window.h"
 #include "zep/window.h"
@@ -7,6 +6,7 @@
 #include "zep/mcommon/logger.h"
 #include "zep/mcommon/threadutils.h"
 
+#include "zep/extensions/mode_repl.h"
 namespace Zep
 {
 

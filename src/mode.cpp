@@ -2220,4 +2220,50 @@ const KeyMap& ZepMode::GetKeyMappings(EditorMode mode) const
     return m_insertMap;
 }
 
+void ZepMode::AddStandardKeyMaps()
+{
+    auto keymap_add_count_reg = [](const std::vector<KeyMap*>& maps, const std::vector<std::string>& commands, const StringId& id) {
+        for (auto& m : maps)
+        {
+            for (auto& c : commands)
+            {
+                keymap_add({ m }, { "<D><R>" + c }, id);
+                keymap_add({ m }, { "<R>" + c }, id);
+                keymap_add({ m }, { "<D>" + c }, id);
+                keymap_add({ m }, { c }, id);
+            }
+        }
+    };
+    keymap_add({ &m_normalMap }, { "<C-p>", "<C-,>" }, id_QuickSearch);
+    keymap_add({ &m_normalMap, &m_visualMap }, { ":", "/", "?" }, id_ExMode);
+
+    keymap_add_count_reg({ &m_normalMap, &m_visualMap }, { "j", "<Down>" }, id_MotionDown);
+    keymap_add_count_reg({ &m_normalMap, &m_visualMap }, { "k", "<Up>" }, id_MotionUp);
+    keymap_add_count_reg({ &m_normalMap, &m_visualMap }, { "l", "<Right>" }, id_MotionRight);
+    keymap_add_count_reg({ &m_normalMap, &m_visualMap }, { "h", "<Left>", "<Backspace>" }, id_MotionLeft);
+
+    keymap_add({ &m_insertMap }, { "<Down>" }, id_MotionDown);
+    keymap_add({ &m_insertMap }, { "<Up>" }, id_MotionUp);
+    keymap_add({ &m_insertMap }, { "<Right>" }, id_MotionRight);
+    keymap_add({ &m_insertMap }, { "<Left>" }, id_MotionLeft);
+    keymap_add({ &m_normalMap }, { "L" }, id_NextTabWindow);
+
+    keymap_add_count_reg({ &m_normalMap }, { ";" }, id_FindNext);
+    keymap_add_count_reg({ &m_normalMap }, { "n" }, id_MotionNextSearch);
+    keymap_add_count_reg({ &m_normalMap }, { "N" }, id_MotionPreviousSearch);
+
+    keymap_add({ &m_normalMap }, { "<F8>" }, id_MotionNextMarker);
+    keymap_add({ &m_normalMap }, { "<S-F8>" }, id_MotionPreviousMarker);
+
+    keymap_add({ &m_normalMap }, { "+" }, id_FontBigger);
+    keymap_add({ &m_normalMap }, { "-" }, id_FontSmaller);
+
+    keymap_add({ &m_normalMap }, { "<C-i><C-o>" }, id_SwitchToAlternateFile);
+
+    keymap_add({ &m_normalMap }, { "<C-j>" }, id_MotionDownSplit);
+    keymap_add({ &m_normalMap }, { "<C-l>" }, id_MotionRightSplit);
+    keymap_add({ &m_normalMap }, { "<C-k>" }, id_MotionUpSplit);
+    keymap_add({ &m_normalMap }, { "<C-h>" }, id_MotionLeftSplit);
+}
+
 } // namespace Zep

@@ -2,7 +2,6 @@
 #include "zep/buffer.h"
 #include "zep/display.h"
 #include "zep/filesystem.h"
-#include "zep/mode_repl.h"
 #include "zep/mode_tree.h"
 #include "zep/mode_search.h"
 #include "zep/mode_standard.h"
@@ -19,6 +18,10 @@
 #include "zep/mcommon/logger.h"
 #include "zep/mcommon/string/murmur_hash.h"
 #include "zep/mcommon/string/stringutils.h"
+
+#include "zep/extensions/mode_repl.h"
+#include "zep/extensions/mode_orca.h"
+#include "zep/extensions/syntax_orca.h"
 
 #include <stdexcept>
 
@@ -347,7 +350,7 @@ ZepWindow* ZepEditor::AddRepl()
 
 ZepWindow* ZepEditor::AddOrca()
 {
-    auto pOrcaBuffer = GetEmptyBuffer("Orca.orca");
+    auto pOrcaBuffer = GetFileBuffer("d:/dev/zep/tests/popcorn.orca");
     auto pWindow = GetActiveTabWindow()->GetActiveWindow();
     pWindow->SetBuffer(pOrcaBuffer);
 
@@ -359,6 +362,10 @@ ZepWindow* ZepEditor::AddOrca()
     ZSetFlags(flags, WindowFlags::HideScrollBar);
     ZSetFlags(flags, WindowFlags::HideSplitMark);
     pWindow->SetWindowFlags(flags);
+
+    auto pMode = std::make_shared<ZepMode_Orca>(*this);
+    pOrcaBuffer->SetMode(pMode);
+    pMode->Begin();
 
     return GetActiveTabWindow()->GetActiveWindow();
 }
@@ -509,10 +516,6 @@ void ZepEditor::UpdateWindowState()
         RemoveBuffer(victim);
     }
 
-    if (m_pCurrentMode)
-    {
-        m_pCurrentMode->PreDisplay();
-    }
 }
 
 void ZepEditor::ResetCursorTimer()

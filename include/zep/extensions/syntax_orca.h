@@ -1,6 +1,6 @@
 #pragma once
 
-#include "syntax.h"
+#include "zep/syntax.h"
 
 namespace Zep
 {

@@ -435,6 +435,12 @@ CURSOR_TEST(find_a_char_num, "one2 one2", "2f2", 8, 0);
 CURSOR_TEST(find_a_char_beside, "ooo", "fo;", 2, 0);
 CURSOR_TEST(find_backwards, "foo", "lllllFf", 0, 0);
 
+
+inline std::string MakeCommandRegex(const std::string& command)
+{
+    return std::string(R"((?:(\d)|(<\S>*)|("\w?)*)()") + command + ")";
+}
+
 TEST(Regex, VimRegex)
 {
     auto rx = MakeCommandRegex("y");

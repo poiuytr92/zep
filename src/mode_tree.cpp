@@ -42,9 +42,9 @@ void ZepMode_Tree::Notify(std::shared_ptr<ZepMessage> message)
 
 }
 
-void ZepMode_Tree::PreDisplay()
+void ZepMode_Tree::PreDisplay(ZepWindow& window)
 {
-    m_spVim->PreDisplay();
+    m_spVim->PreDisplay(window);
 }
 
 void ZepMode_Tree::AddKeyPress(uint32_t key, uint32_t modifiers)

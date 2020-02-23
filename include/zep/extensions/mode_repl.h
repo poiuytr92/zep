@@ -1,6 +1,6 @@
 #pragma once
 
-#include "mode.h"
+#include "zep/mode.h"
 #include <future>
 #include <memory>
 #include <regex>

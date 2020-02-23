@@ -142,7 +142,7 @@ public:
     virtual void AddKeyPress(uint32_t key, uint32_t modifiers = 0) override;
     virtual void Begin() override;
     virtual void Notify(std::shared_ptr<ZepMessage> message) override;
-    virtual void PreDisplay() override;
+    virtual void PreDisplay(ZepWindow& win) override;
     virtual const char* Name() const override { return StaticName(); }
 
 private:

@@ -244,7 +244,7 @@ void ZepMode_Vim::Begin()
     m_pendingEscape = false;
 }
 
-void ZepMode_Vim::PreDisplay()
+void ZepMode_Vim::PreDisplay(ZepWindow&)
 {
 
     // If we thought it was an escape but it wasn't, put the 'j' back in!

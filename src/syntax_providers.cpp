@@ -1,8 +1,9 @@
 #include "zep/buffer.h"
 #include "zep/editor.h"
 #include "zep/syntax.h"
-#include "zep/syntax_orca.h"
 #include "zep/syntax_tree.h"
+
+#include "zep/extensions/syntax_orca.h"
 
 namespace Zep
 {
