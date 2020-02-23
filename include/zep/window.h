@@ -195,6 +195,9 @@ private:
     
     bool IsActiveWindow() const;
 
+    NRectf GetTextRegionRect() const;
+    NVec2f GetSpanPixelRange(SpanInfo& span) const;
+
 private:
     NRectf m_displayRect;
     std::shared_ptr<Region> m_bufferRegion;  // region of the display we are showing on.
@@ -249,7 +252,7 @@ private:
     NVec2f m_lastTipQueryPos;            // last query location for the tip
     bool m_tipDisabledTillMove = false;  // Certain operations will stop the tip until the mouse is moved
     std::map<NVec2f, std::shared_ptr<RangeMarker>> m_toolTips;  // All tooltips for a given position, currently only 1 at a time
-
+    NRectf m_textRectPx = NRectf(0.0f, 0.0f, 0.0f, 0.0f);
 };
 
 } // namespace Zep

@@ -351,7 +351,7 @@ ZepWindow* ZepEditor::AddRepl()
 
 ZepWindow* ZepEditor::AddOrca()
 {
-    auto pOrcaBuffer = GetFileBuffer(ZepPath(ZEP_ROOT) / "tests/two_by_two.orca");
+    auto pOrcaBuffer = GetFileBuffer(ZepPath(ZEP_ROOT) / "tests/popcorn.orca");
     auto pWindow = GetActiveTabWindow()->GetActiveWindow();
     pWindow->SetBuffer(pOrcaBuffer);
 
